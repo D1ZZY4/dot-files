@@ -94,8 +94,8 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
     echo "  starship-dotfiles --enable-module core|directory|git|languages|package|file-icons"
     echo "  starship-dotfiles --disable-module core|directory|git|languages|package|file-icons"
     echo "  starship-dotfiles --list-modules"
-    echo "  starship-dotfiles --explain"
-    echo "  starship-dotfiles --check-fast"
+    echo "  starship-dotfiles --dev-tools init"
+    echo "  starship-dotfiles --dev-tools toggle <tool>"
     echo ""
     echo "$heading""Active$normal"
     echo "  style:    $saved_style"
@@ -202,130 +202,6 @@ function __dotfiles_write_modules_file --argument-names modules_file
         end
     end > "$modules_file.new"
     mv "$modules_file.new" "$modules_file"
-end
-
-function __dotfiles_explain_prompt --argument-names style_file color_file username_file modules_file
-    set -l bold (set_color --bold)
-    set -l normal (set_color normal)
-    set -l green (set_color green)
-    set -l red (set_color red)
-    set -l yellow (set_color yellow)
-
-    set -l active_style (dotfiles-read-setting "$style_file"; or echo 5)
-    set -l active_color (dotfiles-read-setting "$color_file"; or echo moonlight)
-    set -l active_username (dotfiles-read-setting "$username_file")
-    if test -z "$active_username"
-        set active_username "{user-name}"
-    end
-
-    echo "$bold"Starship prompt breakdown"$normal"
-    echo ""
-    echo "  $yellow style $active_style$normal separator, $yellow$active_color$normal palette"
-    echo "  user: $active_username"
-    echo ""
-
-    set -l enabled_modules (__dotfiles_get_enabled_modules "$modules_file")
-
-    if test (count $enabled_modules) -eq 0
-        echo "  modules: $green all enabled$normal (core directory git languages package)"
-        if not __dotfiles_module_enabled file-icons "$modules_file"
-            echo "  modules: file-icons $red disabled$normal (comment it in to enable)"
-        end
-    else
-        for m in core directory git languages package file-icons
-            if test "$m" = core
-                continue
-            end
-            if __dotfiles_module_enabled "$m" "$modules_file"
-                echo "  module $green $m enabled$normal"
-            else
-                echo "  module $red $m disabled$normal"
-            end
-        end
-    end
-end
-
-function __dotfiles_check_fast --argument-names style_file color_file username_file modules_file devtools_file
-    set -l bold (set_color --bold)
-    set -l normal (set_color normal)
-    set -l green (set_color green)
-    set -l red (set_color red)
-    set -l yellow (set_color yellow)
-    set -l blue (set_color blue)
-    set -l cyan (set_color cyan)
-    set -l magenta (set_color magenta)
-
-    echo "$bold$blue[Starship]$normal"
-    set -l active_style (dotfiles-read-setting "$style_file"; or echo 5)
-    set -l active_color (dotfiles-read-setting "$color_file"; or echo moonlight)
-    set -l generated_config "$HOME/.config/starship/starship.toml"
-    if test -f "$generated_config"
-        echo "  config:    $green OK$normal ($generated_config)"
-    else
-        echo "  config:    $red MISSING$normal (run: starship-rebuild)"
-    end
-    echo "  style:     $active_style"
-    echo "  color:     $active_color"
-
-    echo ""
-    echo "$bold$yellow[Fastfetch]$normal"
-    set -l fastfetch_config "$HOME/.config/fastfetch/config.jsonc"
-    if test -f "$fastfetch_config"
-        echo "  config:    $green OK$normal ($fastfetch_config)"
-    else
-        echo "  config:    $red MISSING$normal"
-    end
-    set -l username_config "$HOME/.config/starship/username"
-    if test -f "$username_config"
-        set -l welcome_name (dotfiles-read-setting "$username_config")
-        if test -n "$welcome_name"
-            echo "  welcome:   $green custom$normal ($welcome_name)"
-        else
-            echo "  welcome:   $yellow system$normal ({user-name})"
-        end
-    else
-        echo "  welcome:   $red missing$normal"
-    end
-
-    echo ""
-    echo "$bold$cyan[Dev Tools]$normal"
-    if test -f "$devtools_file"
-        echo "  config:    $green OK$normal ($devtools_file)"
-        for section in runtimes packages python system_tools infrastructure
-            if grep -q "^\[$section\]" "$devtools_file" 2>/dev/null
-                if grep -A 1 "^\[$section\]" "$devtools_file" 2>/dev/null | grep -q "enabled\s*=\s*false" 2>/dev/null
-                    echo "  $section:   $red disabled$normal"
-                else
-                    echo "  $section:   $green enabled$normal"
-                end
-            end
-        end
-    else
-        echo "  config:    $yellow NOT CONFIGURED$normal (run: starship-dotfiles --dev-tools init)"
-    end
-
-    echo ""
-    echo "$bold$green[Modules]$normal"
-    set -l all_modules_list core directory git languages package file-icons
-    for m in $all_modules_list
-        if test "$m" = core
-            echo "  $m: $green always enabled$normal"
-        else if __dotfiles_module_enabled "$m" "$modules_file"
-            echo "  $m: $green enabled$normal"
-        else
-            echo "  $m: $red disabled$normal"
-        end
-    end
-
-    echo ""
-    echo "$bold$magenta[Preference files]$normal"
-    for pf in "$style_file" "$color_file" "$username_file" "$modules_file" "$devtools_file"
-        if test -f "$pf"
-            echo "  $pf: $green exists$normal"
-        else
-            echo "  $pf: $yellow will be created$normal"
-        end
-    end
 end
 
 function starship-dotfiles --description 'Manage Starship and Fastfetch dotfiles preferences'
@@ -501,12 +377,6 @@ function starship-dotfiles --description 'Manage Starship and Fastfetch dotfiles
             end
             echo ""
             echo "Use --enable-module or --disable-module to toggle."
-
-        case --explain
-            __dotfiles_explain_prompt "$style_file" "$color_file" "$username_file" "$modules_file"
-
-        case --check-fast
-            __dotfiles_check_fast "$style_file" "$color_file" "$username_file" "$modules_file" "$devtools_file"
 
         case --dev-tools
             if test (count $argv) -lt 2
