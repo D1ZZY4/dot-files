@@ -30,17 +30,18 @@ The build script:
 
 ## Module order
 
-Module files are sorted by filename:
+Module files are loaded in the explicit order defined by `build.fish`:
 
 ```text
-00-core.toml
-10-directory.toml
-20-git.toml
-30-languages.toml
-40-package.toml
+core.toml
+directory.toml
+git.toml
+languages.toml
+package.toml
+file-icons.toml
 ```
 
-Use numeric prefixes to control load order.
+To add a new module, edit `config/starship/build.fish` and insert the filename into the `module_order` list at the correct position.
 
 ## Preference files
 
@@ -54,17 +55,9 @@ Lines starting with `#` are ignored. After editing `style` or `color`, run `star
 
 ## Adding a module
 
-Create a new file under `config/starship/modules/`, for example:
-
-```text
-60-cloud.toml
-```
-
-Then run:
-
-```fish
-starship-rebuild
-```
+1. Create the source file under `config/starship/modules/`, for example `config/starship/modules/cloud.toml`.
+2. Edit `config/starship/build.fish` and insert `cloud` into the `module_order` list at the correct position. Avoid inserting arbitrary filenames from outside the list; follow the convention of descriptive basenames.
+3. Run `starship-rebuild`.
 
 ## Separator placeholders
 

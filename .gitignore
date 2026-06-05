@@ -5,6 +5,7 @@ config/starship/starship.toml
 .DS_Store
 .cache/
 *.log
+.vscode/
 
 # Backup or temporary files
 *.bak

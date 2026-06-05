@@ -78,9 +78,15 @@ echo "# Active separator style: $style ($left ... $right)" >> $output
 echo "# Active color theme: $color_theme" >> $output
 echo "# Do not edit this generated file directly unless you know what you are doing." >> $output
 
-for module in $config_dir/modules/*.toml
+set -l module_order core directory git languages package file-icons
+for module_name in $module_order
+    set -l module "$config_dir/modules/$module_name.toml"
+    if not test -f "$module"
+        echo "build.fish: module '$module_name' not found, skipping" >&2
+        continue
+    end
     echo "" >> $output
-    echo "# --- "(basename $module)" ---" >> $output
+    echo "# --- $module_name.toml ---" >> $output
     string replace -a $left_token $left < $module \
         | string replace -a $right_token $right \
         | string replace -a $palette_token $color_theme >> $output

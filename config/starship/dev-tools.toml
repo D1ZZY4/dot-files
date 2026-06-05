@@ -1,0 +1,32 @@
+# Dev tools visibility configuration for Fastfetch startup.
+# Set enabled = false to hide a tool or entire section.
+# Individual tool settings override section settings.
+# Updated via: starship-dotfiles --dev-tools toggle <tool>
+
+[runtimes]
+nodejs = true
+deno = true
+bun = true
+go = true
+rustc = true
+java = true
+
+[packages]
+npm = true
+pnpm = true
+yarn = true
+cargo = true
+pipx = true
+uv = true
+
+[python]
+enabled = true
+
+[system_tools]
+git = true
+gh = true
+
+[infrastructure]
+docker = true
+compose = true
+kubectl = true

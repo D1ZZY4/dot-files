@@ -33,6 +33,8 @@ Preference files after install:
   ~/.config/starship/style      Starship separator style (1-5)
   ~/.config/starship/color      Starship palette name
   ~/.config/starship/username   Fastfetch welcome name (empty = system user)
+  ~/.config/starship/modules    Enabled Starship modules (one per line)
+  ~/.config/starship/dev-tools.toml  Dev Tools visibility
 
 Examples:
   ./install.sh

@@ -1,0 +1,8 @@
+# File icon module (disabled by default).
+# To enable: starship-dotfiles --enable-module file-icons
+# Uncomment the section below to activate.
+# [file_icon]
+# disabled = false
+# file_icon_margin = "none"
+# file_icon_margin_left = ""
+# file_icon_margin_right = " "

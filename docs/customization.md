@@ -89,7 +89,7 @@ starship-dotfiles --color catppuccin-macchiato
 
 ## Directory icons
 
-Directory icons are in `config/starship/modules/10-directory.toml`.
+Directory icons are in `config/starship/modules/directory.toml`.
 
 Starship `directory.substitutions` performs string replacement, not strict segment matching. Avoid overly generic keys such as `test` or `cache` when they could match unrelated paths.
 
