@@ -1,0 +1,5 @@
+# Package metadata intentionally minimal in the powerline layout.
+[package]
+symbol = ""
+format = ""
+disabled = false

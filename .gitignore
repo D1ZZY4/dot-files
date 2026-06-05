@@ -1,0 +1,11 @@
+# Generated files
+config/starship/starship.toml
+
+# Local/editor state
+.DS_Store
+.cache/
+*.log
+
+# Backup or temporary files
+*.bak
+*.tmp

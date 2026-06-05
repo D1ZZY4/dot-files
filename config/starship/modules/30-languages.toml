@@ -1,0 +1,56 @@
+# Language/tool capsules.
+[c]
+symbol = ""
+format = "[@LEFT@](moon_blue)[ $symbol $version ](fg:moon_bg0 bg:moon_blue)[@RIGHT@ ](fg:moon_blue)"
+
+[cpp]
+symbol = ""
+format = "[@LEFT@](moon_blue)[ $symbol $version ](fg:moon_bg0 bg:moon_blue)[@RIGHT@ ](fg:moon_blue)"
+
+[rust]
+symbol = ""
+format = "[@LEFT@](moon_blue)[ $symbol $version ](fg:moon_bg0 bg:moon_blue)[@RIGHT@ ](fg:moon_blue)"
+
+[golang]
+symbol = ""
+format = "[@LEFT@](moon_blue)[ $symbol $version ](fg:moon_bg0 bg:moon_blue)[@RIGHT@ ](fg:moon_blue)"
+
+[nodejs]
+symbol = ""
+format = "[@LEFT@](moon_blue)[ $symbol $version ](fg:moon_bg0 bg:moon_blue)[@RIGHT@ ](fg:moon_blue)"
+
+[bun]
+symbol = ""
+format = "[@LEFT@](moon_blue)[ $symbol $version ](fg:moon_bg0 bg:moon_blue)[@RIGHT@ ](fg:moon_blue)"
+
+[php]
+symbol = ""
+format = "[@LEFT@](moon_blue)[ $symbol $version ](fg:moon_bg0 bg:moon_blue)[@RIGHT@ ](fg:moon_blue)"
+
+[java]
+symbol = ""
+format = "[@LEFT@](moon_blue)[ $symbol $version ](fg:moon_bg0 bg:moon_blue)[@RIGHT@ ](fg:moon_blue)"
+
+[kotlin]
+symbol = ""
+format = "[@LEFT@](moon_blue)[ $symbol $version ](fg:moon_bg0 bg:moon_blue)[@RIGHT@ ](fg:moon_blue)"
+
+[haskell]
+symbol = ""
+format = "[@LEFT@](moon_blue)[ $symbol $version ](fg:moon_bg0 bg:moon_blue)[@RIGHT@ ](fg:moon_blue)"
+
+[python]
+symbol = ""
+format = "[@LEFT@](moon_blue)[ $symbol $version ](fg:moon_bg0 bg:moon_blue)[@RIGHT@ ](fg:moon_blue)"
+
+[docker_context]
+symbol = ""
+format = "[@LEFT@](moon_bg3)[ $symbol $context ](fg:moon_sky bg:moon_bg3)[@RIGHT@ ](fg:moon_bg3)"
+
+[conda]
+symbol = ""
+format = "[@LEFT@](moon_bg3)[ $symbol $environment ](fg:moon_sky bg:moon_bg3)[@RIGHT@ ](fg:moon_bg3)"
+
+[pixi]
+symbol = "󰏗"
+format = "[@LEFT@](moon_bg3)[ $symbol $version $environment ](fg:moon_fg bg:moon_bg3)[@RIGHT@ ](fg:moon_bg3)"

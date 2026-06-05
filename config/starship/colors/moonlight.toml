@@ -1,0 +1,16 @@
+# Moonlight palette. Token names (moon_*) are referenced in starship modules.
+[palettes.moonlight]
+moon_fg = "#c8d3f5"
+moon_bg0 = "#131421"
+moon_bg1 = "#1e2030"
+moon_bg3 = "#2f334d"
+moon_blue = "#7cafff"
+moon_sky = "#60bdff"
+moon_cyan = "#78dbff"
+moon_teal = "#3ad7c7"
+moon_green = "#c3e88d"
+moon_indigo = "#af9fff"
+moon_purple = "#c4a2ff"
+moon_pink = "#fca7ea"
+moon_yellow = "#ffc777"
+moon_red = "#ff757f"

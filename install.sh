@@ -1,0 +1,234 @@
+#!/usr/bin/env sh
+# Dotfiles installer (Fish shell). Installs config/fish, starship, and fastfetch into ~/.config.
+# Supports clone-based and curl-based installs. Backs up replaced files before overwriting.
+
+set -eu
+
+DOTFILES_DIR=${DOTFILES_DIR:-}
+DOTFILES_REPO_URL=${DOTFILES_REPO_URL:-https://github.com/<user>/<repo>.git}
+INSTALL_MODE=${INSTALL_MODE:-symlink}
+BACKUP_DIR=${BACKUP_DIR:-"$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"}
+DRY_RUN=${DRY_RUN:-0}
+DOTFILES_WELCOME_NAME=${DOTFILES_WELCOME_NAME:-}
+
+print_usage() {
+  cat <<'EOF'
+Usage: ./install.sh [options]
+
+Options:
+  --copy              Copy files instead of creating symlinks.
+  --symlink           Create symlinks (default).
+  --dry-run           Show planned changes without modifying the system.
+  --welcome NAME      Set Fastfetch welcome title (writes ~/.config/starship/username).
+  --help              Show this help message.
+
+Environment variables:
+  DOTFILES_DIR          Explicit dotfiles checkout path.
+  DOTFILES_REPO_URL     Repository URL for curl-based installation.
+  DOTFILES_WELCOME_NAME Same as --welcome (custom Fastfetch title).
+  BACKUP_DIR            Backup location for replaced files.
+  INSTALL_MODE          symlink or copy.
+
+Preference files after install:
+  ~/.config/starship/style      Starship separator style (1-5)
+  ~/.config/starship/color      Starship palette name
+  ~/.config/starship/username   Fastfetch welcome name (empty = system user)
+
+Examples:
+  ./install.sh
+  ./install.sh --welcome "Alex"
+  ./install.sh --copy
+  curl -fsSL https://raw.githubusercontent.com/<user>/<repo>/main/install.sh | sh
+  curl -fsSL .../install.sh | sh -s -- --welcome "Alex"
+EOF
+}
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --copy)
+      INSTALL_MODE=copy
+      ;;
+    --symlink)
+      INSTALL_MODE=symlink
+      ;;
+    --dry-run)
+      DRY_RUN=1
+      ;;
+    --welcome)
+      shift
+      if [ "$#" -eq 0 ]; then
+        echo "install.sh: --welcome requires a name" >&2
+        exit 1
+      fi
+      DOTFILES_WELCOME_NAME=$1
+      ;;
+    --help|-h)
+      print_usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      print_usage
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+run() {
+  if [ "$DRY_RUN" = 1 ]; then
+    echo "[dry-run] $*"
+  else
+    "$@"
+  fi
+}
+
+info() {
+  echo "[dotfiles] $*"
+}
+
+resolve_source_dir() {
+  if [ -n "$DOTFILES_DIR" ]; then
+    echo "$DOTFILES_DIR"
+    return
+  fi
+
+  script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+  if [ -d "$script_dir/config" ]; then
+    echo "$script_dir"
+    return
+  fi
+
+  if [ -n "$DOTFILES_REPO_URL" ]; then
+    clone_dir="$HOME/.local/share/dotfiles"
+    run rm -rf "$clone_dir"
+    run mkdir -p "$(dirname "$clone_dir")"
+    run git clone --depth 1 "$DOTFILES_REPO_URL" "$clone_dir"
+    echo "$clone_dir"
+    return
+  fi
+
+  echo "Unable to locate dotfiles source directory." >&2
+  echo "Clone the repository first or set DOTFILES_REPO_URL for curl-based installation." >&2
+  exit 1
+}
+
+backup_path() {
+  target=$1
+
+  if [ -e "$target" ] || [ -L "$target" ]; then
+    relative=${target#"$HOME"/}
+    backup_target="$BACKUP_DIR/$relative"
+    info "Backing up $target -> $backup_target"
+    run mkdir -p "$(dirname "$backup_target")"
+    run mv "$target" "$backup_target"
+  fi
+}
+
+install_file() {
+  source=$1
+  target=$2
+
+  if [ ! -e "$source" ]; then
+    info "Skipping missing source: $source"
+    return
+  fi
+
+  run mkdir -p "$(dirname "$target")"
+  backup_path "$target"
+
+  if [ "$INSTALL_MODE" = copy ]; then
+    info "Copying $source -> $target"
+    run cp "$source" "$target"
+  else
+    info "Linking $source -> $target"
+    run ln -s "$source" "$target"
+  fi
+}
+
+install_tree_files() {
+  source_dir=$1
+  target_dir=$2
+
+  if [ ! -d "$source_dir" ]; then
+    return
+  fi
+
+  find "$source_dir" -type f | while IFS= read -r source_file; do
+    relative=${source_file#"$source_dir"/}
+    install_file "$source_file" "$target_dir/$relative"
+  done
+}
+
+write_welcome_name() {
+  name=$1
+  target=$2
+
+  if [ -z "$name" ]; then
+    return 0
+  fi
+
+  info "Setting Fastfetch welcome name: $name"
+  if [ "$DRY_RUN" = 1 ]; then
+    echo "[dry-run] write welcome name to $target"
+    return 0
+  fi
+
+  run mkdir -p "$(dirname "$target")"
+  backup_path "$target"
+  {
+    printf '%s\n' \
+      '# Fastfetch welcome name (optional).' \
+      '# Leave empty (comments only) for system username: Welcome, {user-name}!' \
+      '# Or add one display name on its own line below.'
+    printf '%s\n' "$name"
+  } >"$target"
+}
+
+SOURCE_DIR=$(resolve_source_dir)
+CONFIG_HOME=${XDG_CONFIG_HOME:-"$HOME/.config"}
+
+info "Source directory: $SOURCE_DIR"
+info "Config directory: $CONFIG_HOME"
+info "Install mode: $INSTALL_MODE"
+
+run mkdir -p "$CONFIG_HOME"
+
+install_tree_files "$SOURCE_DIR/config/fish" "$CONFIG_HOME/fish"
+install_tree_files "$SOURCE_DIR/config/starship" "$CONFIG_HOME/starship"
+install_tree_files "$SOURCE_DIR/config/fastfetch" "$CONFIG_HOME/fastfetch"
+
+if [ -n "$DOTFILES_WELCOME_NAME" ]; then
+  write_welcome_name "$DOTFILES_WELCOME_NAME" "$CONFIG_HOME/starship/username"
+fi
+
+if command -v fish >/dev/null 2>&1; then
+  if [ -n "$DOTFILES_WELCOME_NAME" ]; then
+    info "Applying Fastfetch welcome title"
+    if [ "$DRY_RUN" = 1 ]; then
+      echo "[dry-run] fish -c 'fastfetch-apply-welcome'"
+    else
+      fish -c 'fastfetch-apply-welcome'
+    fi
+  fi
+
+  info "Generating Starship config"
+  if [ "$DRY_RUN" = 1 ]; then
+    echo "[dry-run] fish $CONFIG_HOME/starship/build.fish"
+  else
+    fish "$CONFIG_HOME/starship/build.fish"
+  fi
+else
+  info "Fish is not installed; skipping welcome apply and Starship generation."
+  info "Run later: fish -c fastfetch-apply-welcome; fish ~/.config/starship/build.fish"
+fi
+
+backup_path "$CONFIG_HOME/starship.toml"
+if [ "$INSTALL_MODE" = copy ]; then
+  install_file "$CONFIG_HOME/starship/starship.toml" "$CONFIG_HOME/starship.toml"
+else
+  info "Linking $CONFIG_HOME/starship/starship.toml -> $CONFIG_HOME/starship.toml"
+  run ln -s "$CONFIG_HOME/starship/starship.toml" "$CONFIG_HOME/starship.toml"
+fi
+
+info "Installation complete. Restart Fish or run: exec fish"

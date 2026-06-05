@@ -1,0 +1,4 @@
+# Fastfetch welcome name (optional). Lives next to style/ and color/.
+# Leave empty (comments only) for system username: Welcome, {user-name}!
+# Or add one display name on its own line, for example:
+# Alex

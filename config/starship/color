@@ -1,0 +1,3 @@
+# Starship color palette name. Must match colors/<name>.toml
+# Options: moonlight | catppuccin-macchiato
+moonlight

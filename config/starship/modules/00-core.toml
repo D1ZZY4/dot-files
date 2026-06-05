@@ -1,0 +1,84 @@
+# Core prompt. @LEFT@/@RIGHT@ = separators (style file); @PALETTE@ = color file.
+add_newline = true
+command_timeout = 900
+palette = "@PALETTE@"
+
+format = """
+[@LEFT@](moon_blue)$os$username[](fg:moon_blue bg:moon_purple)$directory[@RIGHT@ ](fg:moon_purple)$git_branch$git_status$c$cpp$rust$golang$nodejs$bun$php$java$kotlin$haskell$python$docker_context$conda$pixi$line_break$character"""
+
+right_format = """$time"""
+
+
+
+[os]
+disabled = false
+style = "bg:moon_blue fg:moon_bg0"
+format = "[ $symbol ]($style)"
+
+[os.symbols]
+Windows = "󰍲"
+Ubuntu = "󰕈"
+SUSE = ""
+Raspbian = "󰐿"
+Mint = "󰣭"
+Macos = "󰀵"
+Manjaro = ""
+Linux = "󰌽"
+Gentoo = "󰣨"
+Fedora = "󰣛"
+Alpine = ""
+Amazon = ""
+Android = ""
+AOSC = ""
+Arch = "󰣇"
+Artix = "󰣇"
+EndeavourOS = ""
+CentOS = ""
+Debian = "󰣚"
+Redhat = "󱄛"
+RedHatEnterprise = "󱄛"
+Pop = ""
+
+[username]
+show_always = true
+style_user = "bg:moon_blue fg:moon_bg0"
+style_root = "bg:moon_blue fg:moon_bg0"
+format = "[$user ]($style)"
+
+[hostname]
+ssh_only = true
+format = "[@$hostname ]($style)"
+style = "bg:moon_blue fg:moon_bg0"
+
+[time]
+disabled = false
+time_format = "%R"
+style = "fg:moon_fg"
+format = "[ $time]($style)"
+
+[line_break]
+disabled = false
+
+[character]
+disabled = false
+success_symbol = "[](bold fg:moon_green)"
+error_symbol = "[](bold fg:moon_red)"
+vimcmd_symbol = "[](bold fg:moon_green)"
+vimcmd_replace_one_symbol = "[](bold fg:moon_purple)"
+vimcmd_replace_symbol = "[](bold fg:moon_purple)"
+vimcmd_visual_symbol = "[](bold fg:moon_yellow)"
+
+[jobs]
+symbol = " "
+style = "bold moon_blue"
+
+[status]
+disabled = false
+symbol = "✘ "
+format = "[$symbol$status]($style) "
+style = "bold moon_red"
+
+[cmd_duration]
+min_time = 1200
+format = "[󱎫 $duration]($style) "
+style = "moon_yellow"
