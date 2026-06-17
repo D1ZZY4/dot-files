@@ -4,11 +4,11 @@
 
 **A portable, modular terminal environment for Fish, Starship, and Fastfetch.**
 
-[![Shell](https://img.shields.io/badge/Shell-Fish-4AAE46?style=flat-square&logo=fishshell&logoColor=white)](https://fishshell.com/)
-[![Prompt](https://img.shields.io/badge/Prompt-Starship-DD0B78?style=flat-square&logo=starship&logoColor=white)](https://starship.rs/)
-[![Fetch](https://img.shields.io/badge/Fetch-Fastfetch-2D9CDB?style=flat-square)](https://github.com/fastfetch-cli/fastfetch)
-[![Platform](https://img.shields.io/badge/Platform-Linux-FCC624?style=flat-square&logo=linux&logoColor=black)](#requirements)
-[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
+[![Shell: Fish](assets/badges/shell.svg)](https://fishshell.com/)
+[![Prompt: Starship](assets/badges/prompt.svg)](https://starship.rs/)
+[![Fetch: Fastfetch](assets/badges/fetch.svg)](https://github.com/fastfetch-cli/fastfetch)
+[![Platform: Linux](assets/badges/platform.svg)](#requirements)
+[![License: MIT](assets/badges/license.svg)](LICENSE)
 
 <br />
 
