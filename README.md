@@ -1,172 +1,119 @@
-# Dotfiles
+<div align="center">
 
-A portable, modular terminal configuration for **Fish**, Starship, and Fastfetch.
+# dot-files
 
-> **Fish shell only.** This repository is written for the [Fish shell](https://fishshell.com/) and is not compatible with Zsh, Bash, PowerShell, Nushell, or other shells. Fish functions, `conf.d` snippets, and install-time steps (such as Starship config generation) assume Fish. Use Fish as your login shell before installing.
+**A portable, modular terminal environment for Fish, Starship, and Fastfetch.**
 
-The setup focuses on a clean developer experience:
+[![Shell](https://img.shields.io/badge/Shell-Fish-4AAE46?style=flat-square&logo=fishshell&logoColor=white)](https://fishshell.com/)
+[![Prompt](https://img.shields.io/badge/Prompt-Starship-DD0B78?style=flat-square&logo=starship&logoColor=white)](https://starship.rs/)
+[![Fetch](https://img.shields.io/badge/Fetch-Fastfetch-2D9CDB?style=flat-square)](https://github.com/fastfetch-cli/fastfetch)
+[![Platform](https://img.shields.io/badge/Platform-Linux-FCC624?style=flat-square&logo=linux&logoColor=black)](#requirements)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
-- Modular Fish configuration under `conf.d/` and `functions/`
-- Starship prompt with switchable separator styles
-- Modular Starship color themes under `config/starship/colors/`
-- Fastfetch startup summary followed by a dedicated Dev Tools block
-- Icon-aware `ls` fallback for systems without `eza` or `lsd`
-- Safe installer with backup, symlink, copy, dry-run, and curl-based install
+<br />
+
+<img src="assets/preview/preview-terminal.png" alt="Terminal preview — Fastfetch summary, Dev Tools block, and Starship prompt" width="840" />
+
+</div>
+
+---
+
+A clean, reproducible terminal setup built around the [Fish shell](https://fishshell.com/).
+It pairs a [Starship](https://starship.rs/) prompt with a [Fastfetch](https://github.com/fastfetch-cli/fastfetch)
+system summary and a dedicated **Dev Tools** block, all driven by plain-text preference
+files and a single `dot-files` command — no hardcoded usernames or machine-specific paths.
+
+## Contents
+
+- [Highlights](#highlights)
+- [Shell support](#shell-support)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [The `dot-files` command](#the-dot-files-command)
+- [Preference files](#preference-files)
+- [Prompt styles](#prompt-styles)
+- [Color themes](#color-themes)
+- [What the installer does](#what-the-installer-does)
+- [Repository layout](#repository-layout)
+- [Documentation](#documentation)
+
+## Highlights
+
+- **Modular Fish configuration** — composable `conf.d/`, `functions/`, and `completions/` units.
+- **Starship prompt** — five switchable separator styles and per-theme color palettes.
+- **Fastfetch summary** — a startup overview followed by a separate, auto-pruned Dev Tools block.
+- **One command to rule them** — `dot-files` adjusts styles, colors, modules, and tool visibility.
+- **Preference-driven** — everyday options live in simple text files; source files stay untouched.
+- **Icon-aware `ls` fallback** — graceful listings even without `eza` or `lsd`.
+- **Safe installer** — backup, symlink, copy, dry-run, and curl-based installation.
 
 ## Shell support
 
+This repository ships **Fish integration only**. Fish functions, `conf.d` snippets, and
+install-time steps (such as Starship config generation) assume Fish — set Fish as your
+login shell before installing.
+
 | Shell | Supported |
-|-------|-----------|
-| Fish | Yes - required |
-| Zsh | No |
-| Bash | No |
-| Other shells | No |
+| :--- | :---: |
+| Fish | ✅ Required |
+| Zsh | ❌ |
+| Bash | ❌ |
+| Other | ❌ |
 
-Starship and Fastfetch configs are shell-agnostic once installed, but this repo only ships Fish integration (`starship init fish`, `starship-dotfiles`, `starship-rebuild`, and related helpers).
-
-## Preview
-
-Fastfetch runs first:
-
-```text
-Welcome, user!
-------------
-OS        Fedora Linux
-Shell     fish
-Terminal  Ptyxis
-...
-```
-
-Then the Dev Tools block is printed separately. Tools that are not installed are omitted:
-
-```text
-────────────────────────────────────────────
-Dev Tools
-────────────────────────────────────────────
-Runtimes
-   nodejs  v26.3.0
-Package managers
-   npm  v11.16.0
-   pnpm  v11.5.1
-Python
-   python
-    ├─ 3.11 - v3.11.15
-    ├─ 3.12 - v3.12.13
-    ├─ 3.13 - v3.13.13
-    └─ 3.14 - v3.14.5
-```
-
-Starship prompt example with the default style 5:
-
-```text
- 󰣛 user   ~ 
-
-```
+> Starship and Fastfetch configs are shell-agnostic once installed, but only Fish helpers
+> (`starship init fish`, `dot-files`, `starship-rebuild`, …) are provided here.
 
 ## Requirements
 
-Required:
+**Required**
 
-- **Fish shell** (login or interactive shell you use daily)
-- Starship
-- Fastfetch
-- Git (required for curl-based install; clone-based install also uses Git)
-- Nerd Font compatible terminal font, such as FiraCode Nerd Font
+- [Fish shell](https://fishshell.com/) — your daily login / interactive shell
+- [Starship](https://starship.rs/)
+- [Fastfetch](https://github.com/fastfetch-cli/fastfetch)
+- Git — for the curl-based and clone-based installs
+- A [Nerd Font](https://www.nerdfonts.com/) terminal font (e.g. FiraCode Nerd Font)
 
-Recommended tools detected by Dev Tools:
+**Detected automatically by the Dev Tools block**
 
-- Node.js, npm, pnpm, yarn, bun, deno
-- Python interpreters exposed as `python3.x` commands
-- Go, Rust, Java
-- Git, GitHub CLI, Docker, Docker Compose, kubectl
-- `eza` or `lsd` for richer listing output. If neither exists, the included Fish `ls` fallback is used.
+- Runtimes — Node.js, Deno, Bun, Go, Rust, Java
+- Package managers — npm, pnpm, yarn
+- Python interpreters exposed as `python3.x`
+- Tooling — Git, GitHub CLI, Docker, Docker Compose, kubectl
+- `eza` or `lsd` for richer listings (the bundled Fish `ls` fallback is used otherwise)
 
 ## Installation
 
-Replace `<user>/<repo>` and branch name (`main`) with your fork before running the commands below. For curl installs, also set the default URL in `install.sh` (`DOTFILES_REPO_URL` near the top) so the one-liner matches your repository.
-
 ### Quick install (curl)
 
-Downloads `install.sh`, shallow-clones the repository to `~/.local/share/dotfiles`, installs configs, and generates Starship settings with Fish.
+Downloads `install.sh`, shallow-clones the repository to `~/.local/share/dotfiles`,
+installs the configs, and generates the Starship settings with Fish.
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/<user>/<repo>/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/D1ZZY4/dot-files/main/install.sh | sh
 ```
 
 Copy files instead of symlinking:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/<user>/<repo>/main/install.sh | sh -s -- --copy
+curl -fsSL https://raw.githubusercontent.com/D1ZZY4/dot-files/main/install.sh | sh -s -- --copy
 ```
 
-Preview without applying changes:
+Preview without applying any changes:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/<user>/<repo>/main/install.sh | sh -s -- --dry-run
-```
-
-Install from a different fork or branch:
-
-```sh
-DOTFILES_REPO_URL="https://github.com/<user>/<repo>.git" \
-  curl -fsSL https://raw.githubusercontent.com/<user>/<repo>/main/install.sh | sh
-```
-
-After install, restart Fish or run:
-
-```fish
-exec fish
+curl -fsSL https://raw.githubusercontent.com/D1ZZY4/dot-files/main/install.sh | sh -s -- --dry-run
 ```
 
 ### Clone and install
 
-Use this workflow if you want a local checkout to edit before or after installing.
+Use this if you want a local checkout to edit before or after installing.
 
 ```sh
-git clone https://github.com/<user>/<repo>.git ~/.local/share/dotfiles
+git clone https://github.com/D1ZZY4/dot-files.git ~/.local/share/dotfiles
 cd ~/.local/share/dotfiles
-./install.sh
-```
-
-### Copy instead of symlink
-
-Use copy mode if you want installed files to be independent from the repository checkout.
-
-```sh
-./install.sh --copy
-```
-
-### Dry run
-
-Preview changes before applying them.
-
-```sh
-./install.sh --dry-run
-```
-
-## Preference files
-
-Everyday options live in plain-text files (lines starting with `#` are comments):
-
-| File | Purpose |
-|------|---------|
-| `~/.config/starship/style` | Prompt separator `1`–`5` |
-| `~/.config/starship/color` | Palette: `moonlight` or `catppuccin-macchiato` |
-| `~/.config/starship/username` | Fastfetch welcome name |
-
-Leave `username` empty (comments only) to use your **system username** (`Welcome, {user-name}!`). Add one line (for example `Alex`) for a custom title, then run `fastfetch-apply-welcome` or open a new Fish session.
-
-## Runtime customization
-
-Use the Fish helper or edit the files above directly:
-
-```fish
-starship-dotfiles                  # show paths and options
-starship-dotfiles --style 5
-starship-dotfiles --color moonlight
-starship-dotfiles --color catppuccin-macchiato
-starship-dotfiles --username "Your Name"
-starship-dotfiles --username reset # back to system username
+./install.sh            # symlink (default)
+./install.sh --copy     # copy files instead of symlinking
+./install.sh --dry-run  # preview only
 ```
 
 Install with a custom welcome title:
@@ -175,57 +122,103 @@ Install with a custom welcome title:
 ./install.sh --welcome "Your Name"
 ```
 
-## Starship styles
+After installing, restart Fish or run:
 
-Style 5 is the default.
+```fish
+exec fish
+```
+
+> **Forking?** Replace `D1ZZY4/dot-files` with your own `<user>/<repo>` in the commands
+> above, and set `DOTFILES_REPO_URL` near the top of `install.sh` so the curl one-liner
+> points at your repository.
+
+## The `dot-files` command
+
+A single Fish helper manages everything at runtime — run `dot-files` with no arguments to
+see active settings, preference paths, live style/color previews, and the welcome format.
+
+<div align="center">
+
+<img src="assets/preview/preview-dot-files.png" alt="dot-files command output — usage, active settings, style and color previews" width="840" />
+
+</div>
+
+```fish
+dot-files                      # show paths, active settings, and previews
+
+# Prompt appearance
+dot-files --style 5
+dot-files --color moonlight
+dot-files --color catppuccin-macchiato
+
+# Welcome name
+dot-files --username "Your Name"
+dot-files --username reset     # back to the system username
+
+# Starship modules (core is always on)
+dot-files --list-modules
+dot-files --enable-module git
+dot-files --disable-module git
+
+# Fastfetch Dev Tools block
+dot-files --dev-tools init
+dot-files --dev-tools toggle docker
+```
+
+## Preference files
+
+Everyday options live in plain-text files — lines starting with `#` are comments.
+
+| File | Purpose |
+| :--- | :--- |
+| `~/.config/starship/style` | Prompt separator `1`–`5` |
+| `~/.config/starship/color` | Palette: `moonlight` or `catppuccin-macchiato` |
+| `~/.config/starship/username` | Fastfetch welcome name |
+| `~/.config/starship/modules.conf` | Enabled Starship modules (created on first toggle) |
+| `~/.config/starship/dev-tools.toml` | Dev Tools visibility (created by `--dev-tools init`) |
+
+Leave `username` empty (comments only) to use your **system username**
+(`Welcome, {user-name}!`). Add a single line such as `Alex` for a custom title, then run
+`fastfetch-apply-welcome` or open a new Fish session.
+
+## Prompt styles
+
+Style **5** is the default. Switch with `dot-files --style <n>`.
 
 ```text
-style 1 : █ ... █
-style 2 : ░▒▓ ... ▓▒░
-style 3 :  ... 
-style 4 :  ... 
-style 5 :  ... 
+style 1 : █ … █
+style 2 : ░▒▓ … ▓▒░
+style 3 :  … 
+style 4 :  … 
+style 5 :  … 
 ```
 
 ## Color themes
 
-Color themes live in:
+Themes live in `config/starship/colors/`, each with its own Starship palette
+(`palettes.moonlight`, `palettes.catppuccin-macchiato`). The active theme is selected with
+`dot-files --color`, written to `~/.config/starship/color`, and applied on rebuild.
 
-```text
-config/starship/colors/
-```
-
-Currently included:
-
-```text
-moonlight
-catppuccin-macchiato
-```
-
-Each theme has its own Starship palette (`palettes.moonlight`, `palettes.catppuccin-macchiato`). The active theme is selected via `starship-dotfiles --color` and written to `~/.config/starship/color` before rebuild.
+| Theme | Palette |
+| :--- | :--- |
+| `moonlight` | `palettes.moonlight` |
+| `catppuccin-macchiato` | `palettes.catppuccin-macchiato` |
 
 ## What the installer does
 
-The installer:
-
-1. Installs files from `config/fish` into `~/.config/fish`
-2. Installs files from `config/starship` into `~/.config/starship`
-3. Installs files from `config/fastfetch` into `~/.config/fastfetch`
+1. Installs `config/fish` into `~/.config/fish`
+2. Installs `config/starship` into `~/.config/starship`
+3. Installs `config/fastfetch` into `~/.config/fastfetch`
 4. Generates `~/.config/starship/starship.toml` (requires Fish)
 5. Links `~/.config/starship.toml` to the generated Starship config
 6. Backs up replaced files under `~/.dotfiles-backup/<timestamp>`
 
-## Generated files
-
-`config/starship/starship.toml` is intentionally not committed. It is generated from modular source files by:
+`config/starship/starship.toml` is intentionally **not committed** — it is generated from
+the modular source files by:
 
 ```fish
 starship-rebuild
-```
-
-or:
-
-```fish
+# or
 fish ~/.config/starship/build.fish
 ```
 
@@ -233,16 +226,18 @@ fish ~/.config/starship/build.fish
 
 ```text
 .
+├── assets/
+│   └── preview/            # screenshots used in this README
 ├── config/
-│   ├── fastfetch/
-│   ├── fish/
+│   ├── fastfetch/          # Fastfetch config + Dev Tools detection
+│   ├── fish/               # conf.d, functions, completions
 │   └── starship/
-│       ├── colors/
-│       ├── modules/
-│       ├── style      # preference: separator 1-5
-│       ├── color      # preference: palette name
-│       └── username   # preference: Fastfetch welcome name
-├── docs/
+│       ├── colors/         # color themes
+│       ├── modules/        # modular prompt segments
+│       ├── style           # preference: separator 1–5
+│       ├── color           # preference: palette name
+│       └── username        # preference: Fastfetch welcome name
+├── docs/                   # detailed guides
 ├── install.sh
 ├── LICENSE
 └── README.md
@@ -256,6 +251,13 @@ fish ~/.config/starship/build.fish
 - [Fish Guide](docs/fish.md)
 - [Troubleshooting](docs/troubleshooting.md)
 
-## Notes
+---
 
-This repository intentionally avoids hardcoded usernames and machine-specific home paths. Runtime paths are resolved through `$HOME`, `$XDG_CONFIG_HOME`, and command discovery where practical.
+<div align="center">
+
+This repository avoids hardcoded usernames and machine-specific home paths — runtime paths
+resolve through `$HOME`, `$XDG_CONFIG_HOME`, and command discovery wherever practical.
+
+Licensed under the [MIT License](LICENSE).
+
+</div>
