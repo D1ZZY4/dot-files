@@ -2,8 +2,8 @@
   // Welcome title: edit ~/.config/starship/username (empty = system user) or run:
   //   dot-files --username "Your Name"
   "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  // No "source" set: Fastfetch auto-detects and shows the running distro's logo.
   "logo": {
-    "source": "fedora",
     "padding": {
       "top": 1,
       "right": 3
