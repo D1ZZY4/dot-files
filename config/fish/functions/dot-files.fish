@@ -4,8 +4,40 @@
 #   style      — separator style 1-5
 #   color      — moonlight | catppuccin-macchiato
 #   username   — Fastfetch welcome name (empty = system username)
-#   dev-tools  — TOML file controlling which dev tools are shown
-#   modules    — newline-separated list of enabled module filenames (without .toml)
+#   dev-tools.toml — controls which dev tools are shown
+#   modules.conf   — one module name per line; a leading # disables that module
+
+function __dotfiles_all_modules
+    printf '%s\n' core directory git languages package file-icons
+end
+
+# Create modules.conf with every module enabled (file-icons disabled by default)
+# if it does not already exist. build.fish reads this file to order the prompt.
+function __dotfiles_init_modules_file --argument-names modules_file
+    if test -f "$modules_file"
+        return 0
+    end
+    for module in (__dotfiles_all_modules)
+        if test "$module" = file-icons
+            echo "# $module"
+        else
+            echo "$module"
+        end
+    end > "$modules_file"
+end
+
+function __dotfiles_require_valid_module --argument-names module_name
+    if test -z "$module_name"
+        echo "dot-files: missing module name" >&2
+        echo "Available: "(string join ' ' (__dotfiles_all_modules)) >&2
+        return 1
+    end
+    if not contains -- "$module_name" (__dotfiles_all_modules)
+        echo "dot-files: unknown module '$module_name'" >&2
+        echo "Available: "(string join ' ' (__dotfiles_all_modules)) >&2
+        return 1
+    end
+end
 
 function __dotfiles_username_template
     printf '%s\n' \
@@ -22,12 +54,6 @@ function __dotfiles_write_style_file --argument-names style path
 end
 
 function __dotfiles_write_color_file --argument-names color path
-    switch $color
-        case catppuccin-machiato
-            set color catppuccin-macchiato
-        case '*'
-    end
-
     printf '%s\n' \
         '# Starship color palette name. Must match colors/<name>.toml' \
         '# Options: moonlight | catppuccin-macchiato' \
@@ -57,6 +83,7 @@ function __dotfiles_starship_prompt_block
     end
 
     string trim --right -- (string join \n $lines)
+    return 0
 end
 
 function __dotfiles_print_prompt_preview --argument-names label
@@ -84,18 +111,18 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
         set active_username "(system: {user-name})"
     end
 
-    set -l enabled_modules (__dotfiles_get_enabled_modules "$modules_file")
+    set -l enabled_modules (dotfiles-read-modules "$modules_file")
 
     echo "$heading""Usage$normal"
-    echo "  starship-dotfiles --style 1|2|3|4|5"
-    echo "  starship-dotfiles --color moonlight|catppuccin-macchiato"
-    echo "  starship-dotfiles --username NAME"
-    echo "  starship-dotfiles --username reset"
-    echo "  starship-dotfiles --enable-module core|directory|git|languages|package|file-icons"
-    echo "  starship-dotfiles --disable-module core|directory|git|languages|package|file-icons"
-    echo "  starship-dotfiles --list-modules"
-    echo "  starship-dotfiles --dev-tools init"
-    echo "  starship-dotfiles --dev-tools toggle <tool>"
+    echo "  dot-files --style 1|2|3|4|5"
+    echo "  dot-files --color moonlight|catppuccin-macchiato"
+    echo "  dot-files --username NAME"
+    echo "  dot-files --username reset"
+    echo "  dot-files --enable-module core|directory|git|languages|package|file-icons"
+    echo "  dot-files --disable-module core|directory|git|languages|package|file-icons"
+    echo "  dot-files --list-modules"
+    echo "  dot-files --dev-tools init"
+    echo "  dot-files --dev-tools toggle <tool>"
     echo ""
     echo "$heading""Active$normal"
     echo "  style:    $saved_style"
@@ -144,72 +171,12 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
     echo "  $muted(custom)$normal   Welcome, "$yellow"Alex"$normal"!"
 end
 
-function __dotfiles_get_enabled_modules --argument-names modules_file
-    set -l enabled
-    if test -f "$modules_file"
-        for line in (cat "$modules_file")
-            set -l trimmed (string trim -- $line)
-            if test -z "$trimmed"
-                continue
-            end
-            if string match -qr '^\s*#' -- "$trimmed"
-                continue
-            end
-            set -a enabled "$trimmed"
-        end
-    end
-    echo $enabled
-end
-
-function __dotfiles_module_enabled --argument-names module_name modules_file
-    set -l enabled (__dotfiles_get_enabled_modules "$modules_file")
-    for m in $enabled
-        if test "$m" = "$module_name"
-            return 0
-        end
-    end
-    return 1
-end
-
-function __dotfiles_write_modules_file --argument-names modules_file
-    set -l all_modules core directory git languages package file-icons
-    set -l current_enabled (__dotfiles_get_enabled_modules "$modules_file")
-
-    if test (count $current_enabled) -eq 0
-        for idx in (seq (count $all_modules))
-            set -l m $all_modules[$idx]
-            if test "$m" = file-icons
-                echo "# $m"
-            else
-                echo "$m"
-            end
-        end > "$modules_file"
-        return
-    end
-
-    for m in $all_modules
-        set -l found false
-        for e in $current_enabled
-            if test "$e" = "$m"
-                set found true
-                break
-            end
-        end
-        if test "$found" = true
-            echo "$m"
-        else
-            echo "# $m"
-        end
-    end > "$modules_file.new"
-    mv "$modules_file.new" "$modules_file"
-end
-
-function starship-dotfiles --description 'Manage Starship and Fastfetch dotfiles preferences'
+function dot-files --description 'Manage Starship and Fastfetch dotfiles preferences'
     set -l starship_dir "$HOME/.config/starship"
     set -l style_file "$starship_dir/style"
     set -l color_file "$starship_dir/color"
     set -l username_file "$starship_dir/username"
-    set -l modules_file "$starship_dir/modules"
+    set -l modules_file "$starship_dir/modules.conf"
     set -l devtools_file "$starship_dir/dev-tools.toml"
 
     if test (count $argv) -eq 0
@@ -220,7 +187,7 @@ function starship-dotfiles --description 'Manage Starship and Fastfetch dotfiles
     switch $argv[1]
         case --style -s
             if test (count $argv) -lt 2
-                echo "starship-dotfiles: missing style number" >&2
+                echo "dot-files: missing style number" >&2
                 return 1
             end
 
@@ -233,23 +200,23 @@ function starship-dotfiles --description 'Manage Starship and Fastfetch dotfiles
                     echo ""
                     __dotfiles_starship_prompt_block
                 case '*'
-                    echo "starship-dotfiles: unknown style '$style'" >&2
+                    echo "dot-files: unknown style '$style'" >&2
                     echo "Use: 1, 2, 3, 4, or 5"
                     return 1
             end
 
         case --color -c
             if test (count $argv) -lt 2
-                echo "starship-dotfiles: missing color theme" >&2
+                echo "dot-files: missing color theme" >&2
                 return 1
             end
 
             set -l color $argv[2]
             switch $color
-                case moonlight catppuccin-macchiato catppuccin-machiato
+                case moonlight catppuccin-macchiato
                     __dotfiles_write_color_file $color "$color_file"
                 case '*'
-                    echo "starship-dotfiles: unknown color theme '$color'" >&2
+                    echo "dot-files: unknown color theme '$color'" >&2
                     echo "Use: moonlight or catppuccin-macchiato"
                     return 1
             end
@@ -261,7 +228,7 @@ function starship-dotfiles --description 'Manage Starship and Fastfetch dotfiles
 
         case --username -u
             if test (count $argv) -lt 2
-                echo "starship-dotfiles: missing username (or use: --username reset)" >&2
+                echo "dot-files: missing username (or use: --username reset)" >&2
                 return 1
             end
 
@@ -280,99 +247,50 @@ function starship-dotfiles --description 'Manage Starship and Fastfetch dotfiles
             echo "Saved in $username_file"
 
         case --enable-module
-            if test (count $argv) -lt 2
-                echo "starship-dotfiles: missing module name" >&2
-                echo "Available: core directory git languages package file-icons" >&2
-                return 1
-            end
-
             set -l module_name $argv[2]
-            set -l all_modules core directory git languages package file-icons
-            set -l valid false
-            for m in $all_modules
-                if test "$m" = "$module_name"
-                    set valid true
-                    break
-                end
-            end
+            __dotfiles_require_valid_module "$module_name"; or return 1
+            __dotfiles_init_modules_file "$modules_file"
 
-            if test "$valid" = false
-                echo "starship-dotfiles: unknown module '$module_name'" >&2
-                echo "Available: core directory git languages package file-icons" >&2
-                return 1
-            end
-
-            set -l current (__dotfiles_get_enabled_modules "$modules_file")
-            set -l found_mod false
-            for e in $current
-                if test "$e" = "$module_name"
-                    set found_mod true
-                    break
-                end
-            end
-
-            if test "$found_mod" = true
-                echo "starship-dotfiles: module '$module_name' is already enabled"
+            if contains -- "$module_name" (dotfiles-read-modules "$modules_file")
+                echo "dot-files: module '$module_name' is already enabled"
             else
-                if test -f "$modules_file"
-                    sed -i "s/^# $module_name\$/$module_name/" "$modules_file" 2>/dev/null || \
-                    echo "$module_name" >> "$modules_file"
-                else
-                    echo "$module_name" > "$modules_file"
-                end
-                echo "starship-dotfiles: module '$module_name' enabled"
+                sed -i "s/^# *$module_name\$/$module_name/" "$modules_file"
+                echo "dot-files: module '$module_name' enabled"
             end
             starship-rebuild
             echo ""
             __dotfiles_starship_prompt_block
 
         case --disable-module
-            if test (count $argv) -lt 2
-                echo "starship-dotfiles: missing module name" >&2
-                echo "Available: core directory git languages package file-icons" >&2
-                return 1
-            end
-
             set -l module_name $argv[2]
-            set -l all_modules core directory git languages package file-icons
-            set -l valid false
-            for m in $all_modules
-                if test "$m" = "$module_name"
-                    set valid true
-                    break
-                end
-            end
-
-            if test "$valid" = false
-                echo "starship-dotfiles: unknown module '$module_name'" >&2
-                echo "Available: core directory git languages package file-icons" >&2
-                return 1
-            end
+            __dotfiles_require_valid_module "$module_name"; or return 1
 
             if test "$module_name" = core
-                echo "starship-dotfiles: cannot disable 'core' module (required)" >&2
+                echo "dot-files: cannot disable 'core' module (required)" >&2
                 return 1
             end
 
-            if test -f "$modules_file"
-                sed -i "s/^$module_name\$/# $module_name/" "$modules_file" 2>/dev/null || true
-            end
-            echo "starship-dotfiles: module '$module_name' disabled"
+            __dotfiles_init_modules_file "$modules_file"
+            sed -i "s/^$module_name\$/# $module_name/" "$modules_file"
+            echo "dot-files: module '$module_name' disabled"
             starship-rebuild
             echo ""
             __dotfiles_starship_prompt_block
 
         case --list-modules
+            set -l enabled (dotfiles-read-modules "$modules_file")
+            if not test -f "$modules_file"
+                # No preference file yet: report the built-in defaults.
+                set enabled core directory git languages package
+            end
             echo "Available modules (core cannot be disabled):"
-            for m in core directory git languages package file-icons
+            for m in (__dotfiles_all_modules)
                 if test "$m" = core
                     echo "  (required) $m"
+                else if contains -- "$m" $enabled
+                    echo "  (enabled)  $m"
                 else
-                    if __dotfiles_module_enabled "$m" "$modules_file"
-                        echo "  (enabled)  $m"
-                    else
-                        echo "  (disabled) $m"
-                    end
+                    echo "  (disabled) $m"
                 end
             end
             echo ""
@@ -380,9 +298,9 @@ function starship-dotfiles --description 'Manage Starship and Fastfetch dotfiles
 
         case --dev-tools
             if test (count $argv) -lt 2
-                echo "starship-dotfiles: missing dev-tools action" >&2
-                echo "Usage: starship-dotfiles --dev-tools init" >&2
-                echo "       starship-dotfiles --dev-tools toggle <tool_name>" >&2
+                echo "dot-files: missing dev-tools action" >&2
+                echo "Usage: dot-files --dev-tools init" >&2
+                echo "       dot-files --dev-tools toggle <tool_name>" >&2
                 return 1
             end
 
@@ -391,9 +309,10 @@ function starship-dotfiles --description 'Manage Starship and Fastfetch dotfiles
             if test "$dt_action" = init
                 if not test -f "$devtools_file"
                     printf '%s\n' \
-                        '# Dev tools visibility configuration.' \
-                        '# Set enabled = false to hide a tool or entire section.' \
-                        '# Individual tool settings override section settings.' \
+                        '# Dev Tools visibility for the Fastfetch startup block.' \
+                        '# Set a tool to false to hide it (for example: docker = false).' \
+                        '# Tools that are not installed are omitted regardless.' \
+                        '# Updated via: dot-files --dev-tools toggle <tool>' \
                         '' \
                         '[runtimes]' \
                         'nodejs = true' \
@@ -412,7 +331,7 @@ function starship-dotfiles --description 'Manage Starship and Fastfetch dotfiles
                         'uv = true' \
                         '' \
                         '[python]' \
-                        'enabled = true' \
+                        'python = true' \
                         '' \
                         '[system_tools]' \
                         'git = true' \
@@ -423,30 +342,30 @@ function starship-dotfiles --description 'Manage Starship and Fastfetch dotfiles
                         'compose = true' \
                         'kubectl = true' \
                         > "$devtools_file"
-                    echo "starship-dotfiles: dev-tools config created at $devtools_file"
+                    echo "dot-files: dev-tools config created at $devtools_file"
                 else
-                    echo "starship-dotfiles: dev-tools config already exists at $devtools_file"
+                    echo "dot-files: dev-tools config already exists at $devtools_file"
                 end
                 return 0
             end
 
             if test "$dt_action" = toggle
                 if test (count $argv) -lt 3
-                    echo "starship-dotfiles: missing tool name for toggle" >&2
-                    echo "Tools: nodejs deno bun go rustc java npm pnpm yarn cargo pipx uv git gh docker compose kubectl" >&2
+                    echo "dot-files: missing tool name for toggle" >&2
+                    echo "Tools: nodejs deno bun go rustc java npm pnpm yarn cargo pipx uv python git gh docker compose kubectl" >&2
                     return 1
                 end
 
                 set -l tool_name $argv[3]
                 if not test -f "$devtools_file"
-                    echo "starship-dotfiles: dev-tools config not found, run: starship-dotfiles --dev-tools init" >&2
+                    echo "dot-files: dev-tools config not found, run: dot-files --dev-tools init" >&2
                     return 1
                 end
 
                 set -l current_val (grep "^$tool_name\s*=" "$devtools_file" 2>/dev/null | tail -n 1 | string trim | string replace -r '.*=\s*' '' | string trim -c ',"')
                 if test -z "$current_val"
-                    echo "starship-dotfiles: unknown tool '$tool_name'" >&2
-                    echo "Tools: nodejs deno bun go rustc java npm pnpm yarn cargo pipx uv git gh docker compose kubectl" >&2
+                    echo "dot-files: unknown tool '$tool_name'" >&2
+                    echo "Tools: nodejs deno bun go rustc java npm pnpm yarn cargo pipx uv python git gh docker compose kubectl" >&2
                     return 1
                 end
 
@@ -458,17 +377,17 @@ function starship-dotfiles --description 'Manage Starship and Fastfetch dotfiles
                 end
 
                 sed -i "s/^$tool_name\s*=\s*.*/$tool_name = $new_val/" "$devtools_file"
-                echo "starship-dotfiles: $tool_name -> $new_val"
+                echo "dot-files: $tool_name -> $new_val"
                 return 0
             end
 
-            echo "starship-dotfiles: unknown dev-tools action '$dt_action'" >&2
+            echo "dot-files: unknown dev-tools action '$dt_action'" >&2
             echo "Use: init, toggle" >&2
             return 1
 
         case '*'
-            echo "starship-dotfiles: unknown option '$argv[1]'" >&2
-            echo "Run 'starship-dotfiles' to see usage."
+            echo "dot-files: unknown option '$argv[1]'" >&2
+            echo "Run 'dot-files' to see usage."
             return 1
     end
 end

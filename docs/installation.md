@@ -51,12 +51,13 @@ cd ~/.local/share/dotfiles
 
 ## Preference files
 
-After install, edit these directly or use `starship-dotfiles`:
+After install, edit these directly or use `dot-files`:
 
 ```text
-~/.config/starship/style       # 1-5
-~/.config/starship/color       # moonlight | catppuccin-macchiato
-~/.config/starship/username    # empty = system user; one line = custom name
+~/.config/starship/style         # 1-5
+~/.config/starship/color         # moonlight | catppuccin-macchiato
+~/.config/starship/username      # empty = system user; one line = custom name
+~/.config/starship/modules.conf  # enabled modules (created on first toggle)
 ```
 
 Empty `username` (comments only) keeps Fastfetch on `Welcome, {user-name}!`.

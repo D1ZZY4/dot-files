@@ -33,7 +33,7 @@ Preference files after install:
   ~/.config/starship/style      Starship separator style (1-5)
   ~/.config/starship/color      Starship palette name
   ~/.config/starship/username   Fastfetch welcome name (empty = system user)
-  ~/.config/starship/modules    Enabled Starship modules (one per line)
+  ~/.config/starship/modules.conf    Enabled Starship modules (one per line; # disables)
   ~/.config/starship/dev-tools.toml  Dev Tools visibility
 
 Examples:
@@ -225,12 +225,6 @@ else
   info "Run later: fish -c fastfetch-apply-welcome; fish ~/.config/starship/build.fish"
 fi
 
-backup_path "$CONFIG_HOME/starship.toml"
-if [ "$INSTALL_MODE" = copy ]; then
-  install_file "$CONFIG_HOME/starship/starship.toml" "$CONFIG_HOME/starship.toml"
-else
-  info "Linking $CONFIG_HOME/starship/starship.toml -> $CONFIG_HOME/starship.toml"
-  run ln -s "$CONFIG_HOME/starship/starship.toml" "$CONFIG_HOME/starship.toml"
-fi
+install_file "$CONFIG_HOME/starship/starship.toml" "$CONFIG_HOME/starship.toml"
 
 info "Installation complete. Restart Fish or run: exec fish"

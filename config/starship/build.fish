@@ -2,38 +2,22 @@
 # Merge modular Starship sources into ~/.config/starship/starship.toml.
 #
 # Preference files in this directory:
-#   style     — separator style 1-5 (then: starship-rebuild)
-#   color     — palette name matching colors/<name>.toml (then: starship-rebuild)
-#   username  — Fastfetch welcome name (then: fastfetch-apply-welcome)
-
-function __read_setting_file --argument-names file_path fallback
-    if not test -f "$file_path"
-        echo "$fallback"
-        return
-    end
-
-    for line in (cat "$file_path")
-        set -l trimmed (string trim -- $line)
-        if test -z "$trimmed"
-            continue
-        end
-        if string match -qr '^\s*#' -- "$trimmed"
-            continue
-        end
-        echo "$trimmed"
-        return
-    end
-
-    echo "$fallback"
-end
+#   style        — separator style 1-5 (then: starship-rebuild)
+#   color        — palette name matching colors/<name>.toml (then: starship-rebuild)
+#   modules.conf — enabled modules, one per line; a leading # disables (then: starship-rebuild)
+#   username     — Fastfetch welcome name (then: fastfetch-apply-welcome)
+#
+# Uses dotfiles-read-setting / dotfiles-read-modules, autoloaded from
+# ~/.config/fish/functions. Missing preference files fall back to defaults.
 
 set -l config_dir (dirname (status --current-filename))
 set -l output "$config_dir/starship.toml"
 set -l style_file "$config_dir/style"
 set -l color_file "$config_dir/color"
+set -l modules_file "$config_dir/modules.conf"
 set -l colors_dir "$config_dir/colors"
-set -l style (__read_setting_file "$style_file" "5")
-set -l color_theme (__read_setting_file "$color_file" "moonlight")
+set -l style (dotfiles-read-setting "$style_file"; or echo 5)
+set -l color_theme (dotfiles-read-setting "$color_file"; or echo moonlight)
 
 set -l selected_color_file "$colors_dir/$color_theme.toml"
 if not test -f "$selected_color_file"
@@ -78,7 +62,20 @@ echo "# Active separator style: $style ($left ... $right)" >> $output
 echo "# Active color theme: $color_theme" >> $output
 echo "# Do not edit this generated file directly unless you know what you are doing." >> $output
 
-set -l module_order core directory git languages package file-icons
+set -l default_order core directory git languages package file-icons
+set -l enabled_modules (dotfiles-read-modules "$modules_file")
+set -l module_order
+if test (count $enabled_modules) -gt 0
+    # core is mandatory; keep the canonical order, dropping disabled modules.
+    for module_name in $default_order
+        if test "$module_name" = core; or contains -- "$module_name" $enabled_modules
+            set -a module_order $module_name
+        end
+    end
+else
+    set module_order $default_order
+end
+
 for module_name in $module_order
     set -l module "$config_dir/modules/$module_name.toml"
     if not test -f "$module"

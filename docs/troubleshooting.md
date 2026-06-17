@@ -16,8 +16,8 @@ cat ~/.config/starship/color
 Apply:
 
 ```fish
-starship-dotfiles --style 5
-starship-dotfiles --color moonlight
+dot-files --style 5
+dot-files --color moonlight
 # or
 starship-rebuild
 ```
@@ -27,8 +27,8 @@ starship-rebuild
 Edit `~/.config/starship/username` or run:
 
 ```fish
-starship-dotfiles --username "Your Name"
-starship-dotfiles --username reset
+dot-files --username "Your Name"
+dot-files --username reset
 fastfetch-apply-welcome
 ```
 

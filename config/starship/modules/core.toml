@@ -8,8 +8,6 @@ format = """
 
 right_format = """$time"""
 
-
-
 [os]
 disabled = false
 style = "bg:moon_blue fg:moon_bg0"

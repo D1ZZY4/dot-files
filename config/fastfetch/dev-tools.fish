@@ -1,43 +1,19 @@
 #!/usr/bin/env fish
 # Dev Tools startup block: lists installed runtimes, package managers, Python, and CLI tools.
 # Invoked from ~/.config/fish/conf.d/zz-fastfetch.fish after Fastfetch.
-# Individual tools can be toggled via: starship-dotfiles --dev-tools toggle <tool>
+# Individual tools can be toggled via: dot-files --dev-tools toggle <tool>
 
-set -l config_file "$HOME/.config/starship/dev-tools.toml"
+# Global so the function below can see it (Fish functions do not inherit script locals).
+set -g __dt_config_file "$HOME/.config/starship/dev-tools.toml"
 
-function __dt_read_setting
-    if not test -f "$config_file"
-        return 1
-    end
-    grep -q "^$argv[1]\s*=\s*false" "$config_file" 2>/dev/null
-end
-
+# A tool is enabled unless dev-tools.toml explicitly sets `<tool> = false`.
 function __dt_enabled
-    if test (count $argv) -eq 0
+    set -l tool $argv[1]
+    if test -z "$tool"
         return 1
     end
-    if test -f "$config_file"
-        for arg in $argv
-            if grep -q "^$arg\s*=\s*false" "$config_file" 2>/dev/null
-                return 1
-            end
-        end
-    end
-    return 0
-end
-
-function __dt_section_enabled
-    if test (count $argv) -eq 0
+    if test -f "$__dt_config_file"; and grep -q "^$tool\s*=\s*false" "$__dt_config_file" 2>/dev/null
         return 1
-    end
-    if test -f "$config_file"
-        for arg in $argv
-            if grep -q "^\[$arg\]" "$config_file" 2>/dev/null
-                if grep -A 10 "^\[$arg\]" "$config_file" | grep -q "^\s*enabled\s*=\s*false" 2>/dev/null
-                    return 1
-                end
-            end
-        end
     end
     return 0
 end
@@ -71,7 +47,7 @@ function __tool_line
     set -l icon $argv[1]
     set -l label $argv[2]
     set -l tool_version $argv[3]
-    if test -n "$tool_version"; and test "$tool_version" != "not installed"
+    if test -n "$tool_version"
         set -l padded_label (__pad_label "$label" 10)
         echo "  $icon $padded_label $tool_version"
     end
@@ -140,11 +116,9 @@ function __print_section
     if test (count $lines) -eq 0
         return
     end
-    echo "$section_color$section_title$normal"
+    echo $section_color$section_title(set_color normal)
     for line in $lines
-        if test -n "$line"
-            echo "$line"
-        end
+        echo $line
     end
 end
 
@@ -164,71 +138,63 @@ set -l python_lines
 set -l system_lines
 set -l infra_lines
 
-if __dt_enabled nodejs deno bun go rustc java
-    if __dt_enabled nodejs
-        set -a runtime_lines (__tool_line "" "nodejs" (__command_version node 'node --version'))
-    end
-    if __dt_enabled deno
-        set -a runtime_lines (__tool_line "" "deno" (__command_version deno 'deno --version | head -n 1 | command sed -E "s/^deno ([^ ]+).*/v\\1/"'))
-    end
-    if __dt_enabled bun
-        set -a runtime_lines (__tool_line "" "bun" (__command_version bun 'bun --version | string replace -r "^" "v"'))
-    end
-    if __dt_enabled go
-        set -a runtime_lines (__tool_line "" "go" (__command_version go 'go version | command sed -E "s/.*go([0-9.]+).*/v\\1/"'))
-    end
-    if __dt_enabled rustc
-        set -a runtime_lines (__tool_line "" "rustc" (__command_version rustc 'rustc --version | command sed -E "s/rustc ([0-9.]+).*/v\\1/"'))
-    end
-    if __dt_enabled java
-        set -a runtime_lines (__tool_line "" "java" (__command_version java 'java --version | head -n 1 | command sed -E "s/^[^0-9]*([0-9][^ ]*).*/v\\1/"'))
-    end
+if __dt_enabled nodejs
+    set -a runtime_lines (__tool_line "" "nodejs" (__command_version node 'node --version'))
+end
+if __dt_enabled deno
+    set -a runtime_lines (__tool_line "" "deno" (__command_version deno 'deno --version | head -n 1 | command sed -E "s/^deno ([^ ]+).*/v\\1/"'))
+end
+if __dt_enabled bun
+    set -a runtime_lines (__tool_line "" "bun" (__command_version bun 'bun --version | string replace -r "^" "v"'))
+end
+if __dt_enabled go
+    set -a runtime_lines (__tool_line "" "go" (__command_version go 'go version | command sed -E "s/.*go([0-9.]+).*/v\\1/"'))
+end
+if __dt_enabled rustc
+    set -a runtime_lines (__tool_line "" "rustc" (__command_version rustc 'rustc --version | command sed -E "s/rustc ([0-9.]+).*/v\\1/"'))
+end
+if __dt_enabled java
+    set -a runtime_lines (__tool_line "" "java" (__command_version java 'java --version | head -n 1 | command sed -E "s/^[^0-9]*([0-9][^ ]*).*/v\\1/"'))
 end
 
-if __dt_enabled npm pnpm yarn cargo pipx uv
-    if __dt_enabled npm
-        set -a package_lines (__tool_line "" "npm" (__command_version npm 'npm --version | string replace -r "^" "v"'))
-    end
-    if __dt_enabled pnpm
-        set -a package_lines (__tool_line "" "pnpm" (__command_version pnpm 'pnpm --version | string replace -r "^" "v"'))
-    end
-    if __dt_enabled yarn
-        set -a package_lines (__tool_line "" "yarn" (__command_version yarn 'yarn --version | string replace -r "^" "v"'))
-    end
-    if __dt_enabled cargo
-        set -a package_lines (__tool_line "" "cargo" (__command_version cargo 'cargo --version | command sed -E "s/cargo ([0-9.]+).*/v\\1/"'))
-    end
-    if __dt_enabled pipx
-        set -a package_lines (__tool_line "󰆦" "pipx" (__command_version pipx 'pipx --version | string replace -r "^" "v"'))
-    end
-    if __dt_enabled uv
-        set -a package_lines (__tool_line "󰔛" "uv" (__command_version uv 'uv --version | command sed -E "s/^uv ([^ ]+).*/v\\1/"'))
-    end
+if __dt_enabled npm
+    set -a package_lines (__tool_line "" "npm" (__command_version npm 'npm --version | string replace -r "^" "v"'))
+end
+if __dt_enabled pnpm
+    set -a package_lines (__tool_line "" "pnpm" (__command_version pnpm 'pnpm --version | string replace -r "^" "v"'))
+end
+if __dt_enabled yarn
+    set -a package_lines (__tool_line "" "yarn" (__command_version yarn 'yarn --version | string replace -r "^" "v"'))
+end
+if __dt_enabled cargo
+    set -a package_lines (__tool_line "" "cargo" (__command_version cargo 'cargo --version | command sed -E "s/cargo ([0-9.]+).*/v\\1/"'))
+end
+if __dt_enabled pipx
+    set -a package_lines (__tool_line "󰆦" "pipx" (__command_version pipx 'pipx --version | string replace -r "^" "v"'))
+end
+if __dt_enabled uv
+    set -a package_lines (__tool_line "󰔛" "uv" (__command_version uv 'uv --version | command sed -E "s/^uv ([^ ]+).*/v\\1/"'))
 end
 
 if __dt_enabled python
     set -a python_lines (__python_lines)
 end
 
-if __dt_enabled git gh
-    if __dt_enabled git
-        set -a system_lines (__tool_line "" "git" (__command_version git 'git --version | string replace "git version " "v"'))
-    end
-    if __dt_enabled gh
-        set -a system_lines (__tool_line "" "gh" (__command_version gh 'gh --version | head -n 1 | command sed -E "s/gh version ([0-9.]+).*/v\\1/"'))
-    end
+if __dt_enabled git
+    set -a system_lines (__tool_line "" "git" (__command_version git 'git --version | string replace "git version " "v"'))
+end
+if __dt_enabled gh
+    set -a system_lines (__tool_line "" "gh" (__command_version gh 'gh --version | head -n 1 | command sed -E "s/gh version ([0-9.]+).*/v\\1/"'))
 end
 
-if __dt_enabled docker compose kubectl
-    if __dt_enabled docker
-        set -a infra_lines (__tool_line "" "docker" (__command_version docker 'docker --version | command sed -E "s/Docker version ([^,]+).*/v\\1/"'))
-    end
-    if __dt_enabled compose
-        set -a infra_lines (__tool_line "" "compose" (__command_version docker 'docker compose version 2>/dev/null | command sed -E "s/.*v?([0-9.]+).*/v\\1/"'))
-    end
-    if __dt_enabled kubectl
-        set -a infra_lines (__tool_line "󱃾" "kubectl" (__command_version kubectl 'kubectl version --client=true 2>/dev/null | head -n 1 | command sed -E "s/.*v([0-9.]+).*/v\\1/"'))
-    end
+if __dt_enabled docker
+    set -a infra_lines (__tool_line "" "docker" (__command_version docker 'docker --version | command sed -E "s/Docker version ([^,]+).*/v\\1/"'))
+end
+if __dt_enabled compose
+    set -a infra_lines (__tool_line "" "compose" (__command_version docker 'docker compose version 2>/dev/null | command sed -E "s/.*v?([0-9.]+).*/v\\1/"'))
+end
+if __dt_enabled kubectl
+    set -a infra_lines (__tool_line "󱃾" "kubectl" (__command_version kubectl 'kubectl version --client=true 2>/dev/null | head -n 1 | command sed -E "s/.*v([0-9.]+).*/v\\1/"'))
 end
 
 set -l total_lines (math (count $runtime_lines) + (count $package_lines) + (count $python_lines) + (count $system_lines) + (count $infra_lines))

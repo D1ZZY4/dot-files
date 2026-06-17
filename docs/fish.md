@@ -25,10 +25,11 @@ config/fish/functions/
 
 | Function | Description |
 |----------|-------------|
-| `starship-dotfiles` | Manage `style`, `color`, and Fastfetch `username` preference files |
+| `dot-files` | Manage style, color, welcome name, modules, and Dev Tools preferences |
 | `starship-rebuild` | Regenerate `starship.toml` from modules |
 | `fastfetch-apply-welcome` | Sync `starship/username` into Fastfetch `config.jsonc` |
-| `dotfiles-read-setting` | Read first non-comment line from a preference file |
+| `dotfiles-read-setting` | Read the first non-comment line from a preference file |
+| `dotfiles-read-modules` | Read every non-comment line from a preference file |
 | `ls` | Icon-aware listing when `eza` / `lsd` are unavailable |
 
 ## Fastfetch startup

@@ -24,7 +24,7 @@ The build script:
 
 1. Reads the active separator style from `config/starship/style`
 2. Replaces `@LEFT@`, `@RIGHT@`, and `@PALETTE@` placeholders in module files (`@PALETTE@` becomes the active color theme name from `config/starship/color`)
-3. Concatenates modules in lexical order
+3. Concatenates the enabled modules in the order defined by `build.fish`, skipping any disabled in `config/starship/modules.conf`
 4. Appends the active palette from `config/starship/colors/` (must be last: TOML keys after `[palettes.*]` belong to that table until the next `[section]`)
 5. Writes the generated `starship.toml`
 
@@ -41,7 +41,7 @@ package.toml
 file-icons.toml
 ```
 
-To add a new module, edit `config/starship/build.fish` and insert the filename into the `module_order` list at the correct position.
+To add a new module, edit `config/starship/build.fish` and insert the filename into the `default_order` list at the correct position.
 
 ## Preference files
 
@@ -49,14 +49,15 @@ To add a new module, edit `config/starship/build.fish` and insert the filename i
 |------|---------|
 | `~/.config/starship/style` | Separator style `1`–`5` |
 | `~/.config/starship/color` | Active palette name |
+| `~/.config/starship/modules.conf` | Enabled modules (one per line; `#` disables) |
 | `~/.config/starship/username` | Fastfetch welcome name (empty = system user) |
 
-Lines starting with `#` are ignored. After editing `style` or `color`, run `starship-rebuild`. After `username`, run `fastfetch-apply-welcome`.
+Lines starting with `#` are ignored. After editing `style`, `color`, or `modules.conf`, run `starship-rebuild`. After `username`, run `fastfetch-apply-welcome`.
 
 ## Adding a module
 
 1. Create the source file under `config/starship/modules/`, for example `config/starship/modules/cloud.toml`.
-2. Edit `config/starship/build.fish` and insert `cloud` into the `module_order` list at the correct position. Avoid inserting arbitrary filenames from outside the list; follow the convention of descriptive basenames.
+2. Edit `config/starship/build.fish` and insert `cloud` into the `default_order` list at the correct position. To make the module toggleable, also add its name to `__dotfiles_all_modules` in `config/fish/functions/dot-files.fish`.
 3. Run `starship-rebuild`.
 
 ## Separator placeholders

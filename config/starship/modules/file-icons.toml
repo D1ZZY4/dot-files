@@ -1,5 +1,5 @@
 # File icon module (disabled by default).
-# To enable: starship-dotfiles --enable-module file-icons
+# To enable: dot-files --enable-module file-icons
 # Uncomment the section below to activate.
 # [file_icon]
 # disabled = false
