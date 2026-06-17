@@ -13,29 +13,29 @@ Optional tools listed in the Dev Tools block: Node.js, npm, pnpm, Python, Go, Ru
 
 ## Quick install (curl)
 
-Replace `<user>/<repo>` with your repository. Set `DOTFILES_REPO_URL` in `install.sh` before publishing a one-liner without env vars.
+The commands below install from `D1ZZY4/dot-files`. Forking? Replace `D1ZZY4/dot-files` with your own `<user>/<repo>` and set `DOTFILES_REPO_URL` in `install.sh` before publishing your own one-liner.
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/<user>/<repo>/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/D1ZZY4/dot-files/main/install.sh | sh
 ```
 
 Custom welcome title during install:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/<user>/<repo>/main/install.sh | sh -s -- --welcome "Alex"
+curl -fsSL https://raw.githubusercontent.com/D1ZZY4/dot-files/main/install.sh | sh -s -- --welcome "Alex"
 ```
 
 Or:
 
 ```sh
 DOTFILES_WELCOME_NAME="Alex" \
-  curl -fsSL https://raw.githubusercontent.com/<user>/<repo>/main/install.sh | sh
+  curl -fsSL https://raw.githubusercontent.com/D1ZZY4/dot-files/main/install.sh | sh
 ```
 
 ## Clone-based installation
 
 ```sh
-git clone https://github.com/<user>/<repo>.git ~/.local/share/dotfiles
+git clone https://github.com/D1ZZY4/dot-files.git ~/.local/share/dotfiles
 cd ~/.local/share/dotfiles
 ./install.sh
 ```

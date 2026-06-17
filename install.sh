@@ -5,7 +5,7 @@
 set -eu
 
 DOTFILES_DIR=${DOTFILES_DIR:-}
-DOTFILES_REPO_URL=${DOTFILES_REPO_URL:-https://github.com/<user>/<repo>.git}
+DOTFILES_REPO_URL=${DOTFILES_REPO_URL:-https://github.com/D1ZZY4/dot-files.git}
 INSTALL_MODE=${INSTALL_MODE:-symlink}
 BACKUP_DIR=${BACKUP_DIR:-"$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"}
 DRY_RUN=${DRY_RUN:-0}
@@ -40,7 +40,7 @@ Examples:
   ./install.sh
   ./install.sh --welcome "Alex"
   ./install.sh --copy
-  curl -fsSL https://raw.githubusercontent.com/<user>/<repo>/main/install.sh | sh
+  curl -fsSL https://raw.githubusercontent.com/D1ZZY4/dot-files/main/install.sh | sh
   curl -fsSL .../install.sh | sh -s -- --welcome "Alex"
 EOF
 }
