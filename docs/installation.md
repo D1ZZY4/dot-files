@@ -8,6 +8,7 @@
 - `starship`
 - `fastfetch`
 - `git` — required for curl-based install
+- A Nerd Font — [FiraCode Nerd Font](https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/FiraCode.zip) recommended (required for prompt and Fastfetch glyphs)
 
 Optional tools listed in the Dev Tools block: Node.js, npm, pnpm, Python, Go, Rust, Java, Git, Docker, and others.
 

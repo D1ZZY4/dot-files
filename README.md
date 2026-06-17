@@ -71,7 +71,18 @@ login shell before installing.
 - [Starship](https://starship.rs/)
 - [Fastfetch](https://github.com/fastfetch-cli/fastfetch)
 - Git — for the curl-based and clone-based installs
-- A [Nerd Font](https://www.nerdfonts.com/) terminal font (e.g. FiraCode Nerd Font)
+- A [Nerd Font](https://www.nerdfonts.com/) terminal font — **FiraCode Nerd Font** recommended ([download FiraCode.zip](https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/FiraCode.zip) · [all releases](https://github.com/ryanoasis/nerd-fonts/releases/latest))
+
+> **Install FiraCode Nerd Font (Linux):**
+>
+> ```sh
+> mkdir -p ~/.local/share/fonts
+> curl -fsSL -o /tmp/FiraCode.zip https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/FiraCode.zip
+> unzip -o /tmp/FiraCode.zip -d ~/.local/share/fonts/FiraCode
+> fc-cache -f
+> ```
+>
+> Then set **FiraCode Nerd Font** as your terminal font. Without a Nerd Font, the prompt and Fastfetch icons render as missing glyphs (□/▯).
 
 **Detected automatically by the Dev Tools block**
 
