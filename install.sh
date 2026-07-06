@@ -95,6 +95,7 @@ resolve_source_dir() {
     return
   fi
 
+  local script_dir
   script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
   if [ -d "$script_dir/config" ]; then
     echo "$script_dir"
@@ -102,10 +103,13 @@ resolve_source_dir() {
   fi
 
   if [ -n "$DOTFILES_REPO_URL" ]; then
-    clone_dir="$HOME/.local/share/dotfiles"
+    local clone_dir="$HOME/.local/share/dotfiles"
     run rm -rf "$clone_dir"
     run mkdir -p "$(dirname "$clone_dir")"
-    run git clone --depth 1 "$DOTFILES_REPO_URL" "$clone_dir"
+    if ! run git clone --depth 1 "$DOTFILES_REPO_URL" "$clone_dir"; then
+      echo "Failed to clone repository from $DOTFILES_REPO_URL" >&2
+      exit 1
+    fi
     echo "$clone_dir"
     return
   fi
@@ -116,11 +120,11 @@ resolve_source_dir() {
 }
 
 backup_path() {
-  target=$1
+  local target=$1
 
   if [ -e "$target" ] || [ -L "$target" ]; then
-    relative=${target#"$HOME"/}
-    backup_target="$BACKUP_DIR/$relative"
+    local relative=${target#"$HOME"/}
+    local backup_target="$BACKUP_DIR/$relative"
     info "Backing up $target -> $backup_target"
     run mkdir -p "$(dirname "$backup_target")"
     run mv "$target" "$backup_target"
@@ -128,8 +132,8 @@ backup_path() {
 }
 
 install_file() {
-  source=$1
-  target=$2
+  local source=$1
+  local target=$2
 
   if [ ! -e "$source" ]; then
     info "Skipping missing source: $source"
@@ -149,22 +153,22 @@ install_file() {
 }
 
 install_tree_files() {
-  source_dir=$1
-  target_dir=$2
+  local source_dir=$1
+  local target_dir=$2
 
   if [ ! -d "$source_dir" ]; then
     return
   fi
 
   find "$source_dir" -type f | while IFS= read -r source_file; do
-    relative=${source_file#"$source_dir"/}
+    local relative=${source_file#"$source_dir"/}
     install_file "$source_file" "$target_dir/$relative"
   done
 }
 
 write_welcome_name() {
-  name=$1
-  target=$2
+  local name=$1
+  local target=$2
 
   if [ -z "$name" ]; then
     return 0

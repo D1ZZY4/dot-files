@@ -62,18 +62,17 @@ echo "# Active separator style: $style ($left ... $right)" >> $output
 echo "# Active color theme: $color_theme" >> $output
 echo "# Do not edit this generated file directly unless you know what you are doing." >> $output
 
-set -l default_order core directory git languages package file-icons
 set -l enabled_modules (dotfiles-read-modules "$modules_file")
 set -l module_order
 if test (count $enabled_modules) -gt 0
     # core is mandatory; keep the canonical order, dropping disabled modules.
-    for module_name in $default_order
+    for module_name in (__dotfiles_all_modules)
         if test "$module_name" = core; or contains -- "$module_name" $enabled_modules
             set -a module_order $module_name
         end
     end
 else
-    set module_order $default_order
+    set module_order (__dotfiles_all_modules)
 end
 
 for module_name in $module_order

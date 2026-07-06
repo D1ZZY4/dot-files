@@ -161,6 +161,7 @@ dot-files                      # show paths, active settings, and previews
 dot-files --style 5
 dot-files --color moonlight
 dot-files --color catppuccin-macchiato
+dot-files --color catppuccin-mocha
 
 # Welcome name
 dot-files --username "Your Name"
@@ -183,7 +184,7 @@ Everyday options live in plain-text files — lines starting with `#` are commen
 | File | Purpose |
 | :--- | :--- |
 | `~/.config/starship/style` | Prompt separator `1`–`5` |
-| `~/.config/starship/color` | Palette: `moonlight` or `catppuccin-macchiato` |
+| `~/.config/starship/color` | Palette: `moonlight` or `catppuccin-macchiato` or `catppuccin-mocha` |
 | `~/.config/starship/username` | Fastfetch welcome name |
 | `~/.config/starship/modules.conf` | Enabled Starship modules (created on first toggle) |
 | `~/.config/starship/dev-tools.toml` | Dev Tools visibility (created by `--dev-tools init`) |
@@ -207,13 +208,14 @@ style 5 :  …
 ## Color themes
 
 Themes live in `config/starship/colors/`, each with its own Starship palette
-(`palettes.moonlight`, `palettes.catppuccin-macchiato`). The active theme is selected with
+(`palettes.moonlight`, `palettes.catppuccin-macchiato`, `palettes.catppuccin-mocha`). The active theme is selected with
 `dot-files --color`, written to `~/.config/starship/color`, and applied on rebuild.
 
 | Theme | Palette |
 | :--- | :--- |
 | `moonlight` | `palettes.moonlight` |
 | `catppuccin-macchiato` | `palettes.catppuccin-macchiato` |
+| `catppuccin-mocha` | `palettes.catppuccin-mocha` |
 
 ## What the installer does
 

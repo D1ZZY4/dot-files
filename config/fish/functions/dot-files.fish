@@ -11,6 +11,25 @@ function __dotfiles_all_modules
     printf '%s\n' core directory git languages package file-icons
 end
 
+# Escape regex metacharacters for safe literal sed matching.
+function __dotfiles_regex_escape
+    set -l s $argv[1]
+    string replace -a '\\' '\\\\' -- "$s" \
+        | string replace -a '.' '\\.' \
+        | string replace -a '^' '\\^' \
+        | string replace -a '$' '\\$' \
+        | string replace -a '*' '\\*' \
+        | string replace -a '+' '\\+' \
+        | string replace -a '?' '\\?' \
+        | string replace -a '[' '\\[' \
+        | string replace -a ']' '\\]' \
+        | string replace -a '(' '\\(' \
+        | string replace -a ')' '\\)' \
+        | string replace -a '{' '\\{' \
+        | string replace -a '}' '\\}' \
+        | string replace -a '|' '\\|'
+end
+
 # Create modules.conf with every module enabled (file-icons disabled by default)
 # if it does not already exist. build.fish reads this file to order the prompt.
 function __dotfiles_init_modules_file --argument-names modules_file
@@ -61,7 +80,7 @@ function __dotfiles_write_color_file --argument-names color path
 end
 
 function __dotfiles_rebuild_quiet
-    fish "$HOME/.config/starship/build.fish" >/dev/null 2>&1
+    fish "$HOME/.config/starship/build.fish" 2>&1 >/dev/null
 end
 
 function __dotfiles_starship_prompt_block
@@ -254,7 +273,8 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
             if contains -- "$module_name" (dotfiles-read-modules "$modules_file")
                 echo "dot-files: module '$module_name' is already enabled"
             else
-                sed -i "s/^# *$module_name\$/$module_name/" "$modules_file"
+                set -l escaped (__dotfiles_regex_escape "$module_name")
+                sed -i "s/^# *$escaped\$/$module_name/" "$modules_file"
                 echo "dot-files: module '$module_name' enabled"
             end
             starship-rebuild
@@ -271,7 +291,8 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
             end
 
             __dotfiles_init_modules_file "$modules_file"
-            sed -i "s/^$module_name\$/# $module_name/" "$modules_file"
+            set -l escaped (__dotfiles_regex_escape "$module_name")
+            sed -i "s/^$escaped\$/# $module_name/" "$modules_file"
             echo "dot-files: module '$module_name' disabled"
             starship-rebuild
             echo ""
@@ -362,7 +383,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                     return 1
                 end
 
-                set -l current_val (grep "^$tool_name\s*=" "$devtools_file" 2>/dev/null | tail -n 1 | string trim | string replace -r '.*=\s*' '' | string trim -c ',"')
+                set -l current_val (grep -F "^$tool_name =" "$devtools_file" 2>/dev/null | tail -n 1 | string trim | string replace -r '.*=\s*' '' | string trim -c ',"')
                 if test -z "$current_val"
                     echo "dot-files: unknown tool '$tool_name'" >&2
                     echo "Tools: nodejs deno bun go rustc java npm pnpm yarn cargo pipx uv python git gh docker compose kubectl" >&2
@@ -376,7 +397,8 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                     set new_val "true"
                 end
 
-                sed -i "s/^$tool_name\s*=\s*.*/$tool_name = $new_val/" "$devtools_file"
+                set -l escaped (__dotfiles_regex_escape "$tool_name")
+                sed -i "s/^$escaped\s*=\s*.*/$tool_name = $new_val/" "$devtools_file"
                 echo "dot-files: $tool_name -> $new_val"
                 return 0
             end

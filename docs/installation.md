@@ -56,7 +56,7 @@ After install, edit these directly or use `dot-files`:
 
 ```text
 ~/.config/starship/style         # 1-5
-~/.config/starship/color         # moonlight | catppuccin-macchiato
+~/.config/starship/color         # moonlight | catppuccin-macchiato | catppuccin-mocha
 ~/.config/starship/username      # empty = system user; one line = custom name
 ~/.config/starship/modules.conf  # enabled modules (created on first toggle)
 ```

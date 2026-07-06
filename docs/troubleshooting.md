@@ -17,7 +17,7 @@ Apply:
 
 ```fish
 dot-files --style 5
-dot-files --color moonlight
+dot-files --color moonlight | catppuccin-macchiato | catppuccin-mocha
 # or
 starship-rebuild
 ```

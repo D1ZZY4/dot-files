@@ -9,7 +9,7 @@ Three plain-text files control the most common options. Each supports `#` commen
 | File | Purpose | Apply changes |
 |------|---------|---------------|
 | `~/.config/starship/style` | Prompt separator style `1`–`5` | `starship-rebuild` |
-| `~/.config/starship/color` | Palette name (`moonlight`, `catppuccin-macchiato`) | `starship-rebuild` |
+| `~/.config/starship/color` | Palette name (`moonlight`, `catppuccin-macchiato`, `catppuccin-mocha`) | `starship-rebuild` |
 | `~/.config/starship/username` | Custom Fastfetch welcome name | `fastfetch-apply-welcome` or new shell |
 
 **System username (default):** leave `username` empty (comments only). Fastfetch shows `Welcome, {user-name}!`.
@@ -85,6 +85,10 @@ Palettes are defined in `~/.config/starship/colors/`. Set the active name in `~/
 
 ```fish
 dot-files --color catppuccin-macchiato
+
+# or
+
+dot-files --color catppuccin-mocha
 ```
 
 ### Modules

@@ -1,8 +1,10 @@
 function nvm
-    bash -c "source /usr/share/nvm/init-nvm.sh && nvm $argv"
+    bash -lc 'source /usr/share/nvm/init-nvm.sh && nvm "$@"' -- $argv
 end
 
-source /usr/share/cachyos-fish-config/cachyos-config.fish
+if test -f /usr/share/cachyos-fish-config/cachyos-config.fish
+    source /usr/share/cachyos-fish-config/cachyos-config.fish
+end
 
 # overwrite greeting
 # potentially disabling fastfetch
@@ -12,7 +14,3 @@ source /usr/share/cachyos-fish-config/cachyos-config.fish
 
 # Fish loads files in conf.d/*.fish automatically before this file.
 # Keep this file small; put shell setup in modular files under conf.d/.
-
-if functions -q fish_greeting
-    functions -e fish_greeting
-end
