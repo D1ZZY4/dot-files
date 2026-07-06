@@ -2,7 +2,5 @@
 # Config path: ~/.config/starship.toml (symlink to starship/starship.toml).
 
 if status --is-interactive
-    if type -q starship
-        starship init fish | source
-    end
+    type -q starship; and starship init fish | source
 end

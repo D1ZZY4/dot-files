@@ -2,7 +2,7 @@
 #
 # Preference files (installed under ~/.config/starship/):
 #   style      — separator style 1-5
-#   color      — moonlight | catppuccin-macchiato
+#   color      — moonlight | catppuccin-macchiato | catppuccin-mocha
 #   username   — Fastfetch welcome name (empty = system username)
 #   dev-tools.toml — controls which dev tools are shown
 #   modules.conf   — one module name per line; a leading # disables that module
@@ -56,7 +56,7 @@ end
 function __dotfiles_write_color_file --argument-names color path
     printf '%s\n' \
         '# Starship color palette name. Must match colors/<name>.toml' \
-        '# Options: moonlight | catppuccin-macchiato' \
+        '# Options: moonlight | catppuccin-macchiato | catppuccin-mocha' \
         $color > $path
 end
 
@@ -72,7 +72,7 @@ function __dotfiles_starship_prompt_block
     end
 
     set -l lines (
-        env TERM="$term" STARSHIP_CONFIG="$config" command starship prompt --terminal-width 200 2>/dev/null \
+        env TERM="$term" STARSHIP_CONFIG="$config" starship prompt --terminal-width 200 2>/dev/null \
             | string collect \
             | string trim --right -- \
             | string split \n
@@ -115,7 +115,7 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
 
     echo "$heading""Usage$normal"
     echo "  dot-files --style 1|2|3|4|5"
-    echo "  dot-files --color moonlight|catppuccin-macchiato"
+    echo "  dot-files --color moonlight|catppuccin-macchiato|catppuccin-mocha"
     echo "  dot-files --username NAME"
     echo "  dot-files --username reset"
     echo "  dot-files --enable-module core|directory|git|languages|package|file-icons"
@@ -153,7 +153,7 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
     echo "$heading""Colors$normal $muted(style 5 · real prompt · * = active)$normal"
     __dotfiles_write_style_file 5 "$style_file"
 
-    for color_check in moonlight catppuccin-macchiato
+    for color_check in moonlight catppuccin-macchiato catppuccin-mocha
         __dotfiles_write_color_file $color_check "$color_file"
         __dotfiles_rebuild_quiet
         set -l marker (__dotfiles_active_marker $color_check $saved_color)
@@ -213,11 +213,11 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
 
             set -l color $argv[2]
             switch $color
-                case moonlight catppuccin-macchiato
+                case moonlight catppuccin-macchiato catppuccin-mocha
                     __dotfiles_write_color_file $color "$color_file"
                 case '*'
                     echo "dot-files: unknown color theme '$color'" >&2
-                    echo "Use: moonlight or catppuccin-macchiato"
+                    echo "Use: moonlight, catppuccin-macchiato, or catppuccin-mocha"
                     return 1
             end
 
