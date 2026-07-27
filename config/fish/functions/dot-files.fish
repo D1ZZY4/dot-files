@@ -116,6 +116,9 @@ function __dotfiles_print_prompt_preview --argument-names label
 end
 
 # Open a preference file in the user's preferred editor.
+# The `-f` existence guard is a safety net — each public caller already verifies
+# the file exists before invoking this helper (via the style, color, modules,
+# username, or dev-tools branches).
 function __dotfiles_edit_file --argument-names file_path
     if not test -f "$file_path"
         echo "dot-files: $file_path does not exist" >&2
@@ -139,6 +142,68 @@ function __dotfiles_edit_file --argument-names file_path
         echo "dot-files: no editor found (set EDITOR)" >&2
         return 1
     end
+end
+
+# Locate the dotfiles installation repo. Checks the curl-installed path
+# ($HOME/.local/share/dotfiles) and the DOTFILES_DIR env override. Returns
+# the repo path on stdout, empty string if not found.
+function __dotfiles_repo_path
+    set -l curl_path "$HOME/.local/share/dotfiles"
+    if test -d "$curl_path"; and git -C "$curl_path" rev-parse --is-inside-work-tree >/dev/null 2>&1
+        echo "$curl_path"
+        return 0
+    end
+    if set -q DOTFILES_DIR
+        if test -d "$DOTFILES_DIR"; and git -C "$DOTFILES_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1
+            echo "$DOTFILES_DIR"
+            return 0
+        end
+    end
+    return 1
+end
+
+# Report the git status of the installed dotfiles repo.
+function __dotfiles_status
+    set -l repo (__dotfiles_repo_path)
+    if test $status -ne 0
+        echo "Installed via copy or unknown source. Cannot determine status."
+        return 0
+    end
+
+    set -l branch_info (git -C "$repo" symbolic-ref --short HEAD 2>/dev/null; or echo "detached")
+    echo "Repo: $repo"
+    echo "Branch: $branch_info"
+
+    # Modified files
+    set -l modified (git -C "$repo" diff --name-only 2>/dev/null)
+    if test (count $modified) -gt 0
+        echo "Modified files:"
+        for f in $modified
+            echo "  M $f"
+        end
+    else
+        echo "No modified files."
+    end
+
+    # Untracked files under config/
+    set -l untracked (git -C "$repo" ls-files --others --exclude-standard config/ 2>/dev/null)
+    if test (count $untracked) -gt 0
+        echo "Untracked files under config/:"
+        for f in $untracked
+            echo "  ? $f"
+        end
+    end
+
+    # Ahead / behind vs upstream
+    set -l ahead (git -C "$repo" rev-list --count "@{upstream}..HEAD" 2>/dev/null; or echo 0)
+    set -l behind (git -C "$repo" rev-list --count "HEAD..@{upstream}" 2>/dev/null; or echo 0)
+    if test "$ahead" -gt 0; or test "$behind" -gt 0
+        echo "Ahead $ahead, behind $behind."
+    else
+        echo "Installed dotfiles are up to date."
+    end
+
+    return 0
 end
 
 # Canonical dev-tools tool list — single source of truth for init template,
@@ -197,7 +262,8 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
     echo "$heading""Styles$normal $muted(real prompt from your shell · * = active)$normal"
 
     for style_check in 1 2 3 4 5
-        __dotfiles_write_style_file $style_check "$style_file"
+        set -lx STARSHIP_STYLE_PREVIEW $style_check
+        set -lx STARSHIP_COLOR_PREVIEW $saved_color
         __dotfiles_rebuild_quiet
         set -l marker (__dotfiles_active_marker $style_check $saved_style)
         __dotfiles_print_prompt_preview "$marker$style_check"
@@ -205,17 +271,19 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
 
     echo ""
     echo "$heading""Colors$normal $muted(style 5 · real prompt · * = active)$normal"
-    __dotfiles_write_style_file 5 "$style_file"
 
     for color_check in moonlight catppuccin-macchiato catppuccin-mocha
-        __dotfiles_write_color_file $color_check "$color_file"
+        set -lx STARSHIP_STYLE_PREVIEW 5
+        set -lx STARSHIP_COLOR_PREVIEW $color_check
         __dotfiles_rebuild_quiet
         set -l marker (__dotfiles_active_marker $color_check $saved_color)
         __dotfiles_print_prompt_preview "$marker$color_check"
     end
 
-    __dotfiles_write_style_file $saved_style "$style_file"
-    __dotfiles_write_color_file $saved_color "$color_file"
+    # Live files were never touched; one final rebuild restores the on-disk
+    # starship.toml to match the saved preferences.
+    set -e STARSHIP_STYLE_PREVIEW
+    set -e STARSHIP_COLOR_PREVIEW
     __dotfiles_rebuild_quiet
 
     echo ""
@@ -223,6 +291,118 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
     set -l yellow (set_color yellow)
     echo "  $muted(system)$normal  Welcome, $yellow"{user-name}"$normal!"
     echo "  $muted(custom)$normal   Welcome, "$yellow"Alex"$normal"!"
+end
+
+# Read-only diagnostics. Does not write to any file.
+function __dotfiles_doctor
+    set -l starship_dir "$HOME/.config/starship"
+    set -l color_file "$starship_dir/color"
+    set -l modules_file "$starship_dir/modules.conf"
+    set -l devtools_file "$starship_dir/dev-tools.toml"
+    set -l colors_dir "$starship_dir/colors"
+    set -l has_fail 0
+
+    echo "dot-files doctor:"
+
+    # 1. starship on PATH
+    if type -q starship
+        echo "[OK] starship is on PATH"
+    else
+        echo "[FAIL] starship is not on PATH" >&2
+        set has_fail 1
+    end
+
+    # 2. fastfetch on PATH
+    if type -q fastfetch
+        echo "[OK] fastfetch is on PATH"
+    else
+        echo "[FAIL] fastfetch is not on PATH" >&2
+        set has_fail 1
+    end
+
+    # 3. fish config loads cleanly
+    if fish -c 'source $HOME/.config/fish/config.fish' >/dev/null 2>&1
+        echo "[OK] fish config loads cleanly"
+    else
+        echo "[FAIL] fish config fails to load" >&2
+        set has_fail 1
+    end
+
+    # 4. color value matches a known theme file
+    set -l color_val (dotfiles-read-setting "$color_file"; or echo moonlight)
+    set -l color_theme_file "$colors_dir/$color_val.toml"
+    if not test -f "$color_theme_file"
+        echo "[WARN] color '$color_val' does not match any theme in colors/" >&2
+    else
+        echo "[OK] color '$color_val' matches a known theme"
+    end
+
+    # 5. modules.conf references only known modules
+    set -l unknown_modules
+    if test -f "$modules_file"
+        for mod in (dotfiles-read-modules "$modules_file" 2>/dev/null)
+            if not contains -- "$mod" (__dotfiles_all_modules)
+                set -a unknown_modules "$mod"
+            end
+        end
+    end
+    if test (count $unknown_modules) -eq 0
+        echo "[OK] modules.conf references only known modules"
+    else
+        echo "[WARN] modules.conf contains unknown modules: "(string join ' ' $unknown_modules) >&2
+    end
+
+    # 6. dev-tools.toml keys match known tools
+    set -l unknown_tools
+    if test -f "$devtools_file"
+        set -l in_section 0
+        while read -l line
+            set -l trimmed (string trim -- "$line")
+            if test -z "$trimmed"
+                continue
+            end
+            if string match -qr '^#' -- "$trimmed"
+                continue
+            end
+            if string match -qr '^\[' -- "$trimmed"
+                set in_section 1
+                continue
+            end
+            if test $in_section -eq 1
+                if string match -qr '=' -- "$trimmed"
+                    set -l key (string trim (string split -m 1 = -- "$trimmed")[1])
+                    if string match -qr '^[a-z_]+$' -- "$key"
+                        if not contains -- "$key" (__dotfiles_devtools_list)
+                            set -a unknown_tools "$key"
+                        end
+                    end
+                end
+            end
+        end < "$devtools_file"
+    end
+    if test (count $unknown_tools) -eq 0
+        echo "[OK] dev-tools.toml keys match known tools"
+    else
+        echo "[WARN] dev-tools.toml contains unknown keys: "(string join ' ' $unknown_tools) >&2
+    end
+
+    # 7. starship.toml exists (symlink or regular file)
+    if test -e "$starship_dir/starship.toml"
+        echo "[OK] starship.toml exists"
+    else
+        echo "[FAIL] starship.toml not found at $starship_dir/starship.toml" >&2
+        set has_fail 1
+    end
+
+    # 8. fastfetch config.jsonc exists
+    if test -f "$HOME/.config/fastfetch/config.jsonc"
+        echo "[OK] fastfetch config.jsonc exists"
+    else
+        echo "[FAIL] fastfetch config.jsonc not found at $HOME/.config/fastfetch/config.jsonc" >&2
+        set has_fail 1
+    end
+
+    return $has_fail
 end
 
 function dot-files --description 'Manage Starship and Fastfetch dotfiles preferences'
@@ -239,6 +419,20 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
     end
 
     switch $argv[1]
+        case --doctor
+            __dotfiles_doctor
+            set -l rc $status
+            if test $rc -eq 0
+                echo "All checks passed."
+            else
+                echo "$rc check(s) failed." >&2
+            end
+            return $rc
+
+        case --status
+            __dotfiles_status
+            return 0
+
         case --style -s
             if test (count $argv) -lt 2
                 echo "dot-files: missing style number" >&2
@@ -249,7 +443,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
             switch $style
                 case 1 2 3 4 5
                     __dotfiles_write_style_file $style "$style_file"
-                    starship-rebuild
+                    fish "$HOME/.config/starship/build.fish"
                     echo "Starship style set to $style ($style_file)"
                     echo ""
                     __dotfiles_starship_prompt_block
@@ -275,7 +469,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                     return 1
             end
 
-            starship-rebuild
+            fish "$HOME/.config/starship/build.fish"
             set -l active_color (dotfiles-read-setting "$color_file")
             echo "Starship color set to $active_color ($color_file)"
             echo ""
@@ -313,7 +507,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                 sed -i "s/^# *$escaped\$/$module_name/" "$modules_file"
                 echo "dot-files: module '$module_name' enabled"
             end
-            starship-rebuild
+            fish "$HOME/.config/starship/build.fish"
             echo ""
             __dotfiles_starship_prompt_block
 
@@ -330,7 +524,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
             set -l escaped (__dotfiles_regex_escape "$module_name")
             sed -i "s/^$escaped\$/# $module_name/" "$modules_file"
             echo "dot-files: module '$module_name' disabled"
-            starship-rebuild
+            fish "$HOME/.config/starship/build.fish"
             echo ""
             __dotfiles_starship_prompt_block
 
@@ -358,6 +552,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                 echo "dot-files: missing dev-tools action" >&2
                 echo "Usage: dot-files --dev-tools init" >&2
                 echo "       dot-files --dev-tools toggle <tool_name>" >&2
+                echo "       dot-files --dev-tools reload" >&2
                 return 1
             end
 
@@ -441,8 +636,27 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                 return 0
             end
 
+            if test "$dt_action" = reload
+                if not test -f "$devtools_file"
+                    echo "dot-files: dev-tools config not found, run: dot-files --dev-tools init" >&2
+                    return 1
+                end
+                # Source dev-tools.fish with the auto-render guard so __dt_reload
+                # becomes available without re-rendering on source.
+                set -x __dt_force_no_auto_render 1
+                source "$HOME/.config/fastfetch/dev-tools.fish"
+                set -e __dt_force_no_auto_render
+                if functions -q __dt_reload
+                    __dt_reload
+                    return 0
+                else
+                    echo "dot-files: __dt_reload not found in dev-tools.fish" >&2
+                    return 1
+                end
+            end
+
             echo "dot-files: unknown dev-tools action '$dt_action'" >&2
-            echo "Use: init, toggle" >&2
+            echo "Use: init, toggle, reload" >&2
             return 1
 
         case --edit -e
@@ -454,7 +668,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                         set f "$modules_file"
                     end
                     __dotfiles_edit_file "$f"; or return 1
-                    starship-rebuild
+                    fish "$HOME/.config/starship/build.fish"
                     echo ""
                     __dotfiles_starship_prompt_block
                 case username
