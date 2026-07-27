@@ -354,30 +354,12 @@ install_agents() {
   info "and wired into your live config via symlink or copy."
   echo ""
 
-  # Whether to include the claude/ category
-  local include_claude=1
-  if [ "$AGENTS_MODE" != "all" ]; then
-    # Check if claude/ is explicitly in the requested list
-    case "$AGENTS_MODE" in
-      *"claude/"*) include_claude=1 ;;
-      *) include_claude=0 ;;
-    esac
-  fi
-
   # Collect skills to offer
   local -a skill_list
   local category
   for category_dir in "$skills_dir"/*; do
     [ -d "$category_dir" ] || continue
     category=$(basename "$category_dir")
-    # Skip claude category unless explicitly requested
-    if [ "$category" = "claude" ] && [ "$include_claude" -eq 0 ]; then
-      continue
-    fi
-    # Skip claude category for --agents all; ask separate gate
-    if [ "$category" = "claude" ] && [ "$AGENTS_MODE" = "all" ]; then
-      continue
-    fi
     local skill_dir
     for skill_dir in "$category_dir"/*; do
       [ -d "$skill_dir" ] || continue
@@ -388,32 +370,6 @@ install_agents() {
       skill_list+=("${category}/${skill_name}")
     done
   done
-
-  # If --agents all, ask about claude skills separately
-  if [ "$AGENTS_MODE" = "all" ]; then
-    if [ -d "$skills_dir/claude" ]; then
-      echo "Include Claude-powered skills? [Y/n/s]"
-      printf "  These skills may invoke Claude Code features during install. [Y/n]: "
-      read -r claude_answer
-      case "$claude_answer" in
-        n|N|no) ;;
-        s|S|skip) include_claude=0 ;;
-        *)
-          include_claude=1
-          local claude_skill_dir
-          for claude_skill_dir in "$skills_dir"/claude/*; do
-            [ -d "$claude_skill_dir" ] || continue
-            local cn
-            cn=$(basename "$claude_skill_dir")
-            [ "$cn" = ".git" ] && continue
-            [ -f "$claude_skill_dir/install.fish" ] || continue
-            skill_list+=("claude/$cn")
-          done
-          ;;
-      esac
-      echo ""
-    fi
-  fi
 
   # Install each skill
   local -a installed
