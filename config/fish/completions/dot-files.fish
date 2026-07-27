@@ -25,7 +25,12 @@ complete -c dot-files -l enable-module -x -d 'Enable a Starship module' -a "$_do
 complete -c dot-files -l disable-module -x -d 'Disable a Starship module (core is required)' -a "$_dotfiles_module_opts"
 
 complete -c dot-files -l list-modules -d 'List modules and their status'
-complete -c dot-files -l dev-tools -x -a 'init toggle' -d 'Manage the dev-tools config or toggle a tool'
+complete -c dot-files -l doctor -d 'Run read-only sanity checks'
+complete -c dot-files -l status -d 'Show dotfiles git status vs upstream'
+
+complete -c dot-files -l edit -x -a 'style color modules username dev-tools' -d 'Open a preference file in \$EDITOR and rebuild'
+
+complete -c dot-files -l dev-tools -x -a 'init toggle reload' -d 'Manage the dev-tools config or toggle a tool'
 
 # Dev-tools toggle candidates from __dotfiles_devtools_list, with hardcoded fallback
 # matching the canonical list in functions/dot-files.fish.
@@ -37,4 +42,3 @@ else
 end
 complete -c dot-files -n '__fish_seen_subcommand_from toggle' -f -a "$_dotfiles_devtools_opts"
 
-complete -c dot-files -l edit -x -a 'style color modules username dev-tools' -d 'Open a preference file in \$EDITOR and rebuild'
