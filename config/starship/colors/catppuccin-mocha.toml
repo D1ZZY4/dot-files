@@ -1,5 +1,4 @@
 # Catppuccin Mocha palette. Token names (moon_*) are referenced in starship modules.
-
 [palettes.catppuccin-mocha]
 moon_fg = "#cdd6f4"
 moon_bg0 = "#1e1e2e"
