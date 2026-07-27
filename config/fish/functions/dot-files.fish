@@ -106,7 +106,6 @@ function __dotfiles_starship_prompt_block
     end
 
     string trim --right -- (string join \n $lines)
-    return 0
 end
 
 function __dotfiles_print_prompt_preview --argument-names label
@@ -114,6 +113,38 @@ function __dotfiles_print_prompt_preview --argument-names label
     for line in (string split \n (__dotfiles_starship_prompt_block))
         echo "    $line"
     end
+end
+
+# Open a preference file in the user's preferred editor.
+function __dotfiles_edit_file --argument-names file_path
+    if not test -f "$file_path"
+        echo "dot-files: $file_path does not exist" >&2
+        return 1
+    end
+    echo "dot-files: editing $file_path"
+    if set -q EDITOR
+        if test -n "$EDITOR"
+            eval "$EDITOR" "$file_path"
+        else
+            echo "dot-files: EDITOR is set but empty" >&2
+            return 1
+        end
+    else if type -q nvim
+        nvim "$file_path"
+    else if type -q vim
+        vim "$file_path"
+    else if type -q nano
+        nano "$file_path"
+    else
+        echo "dot-files: no editor found (set EDITOR)" >&2
+        return 1
+    end
+end
+
+# Canonical dev-tools tool list — single source of truth for init template,
+# toggle error messages, and completions. Edit this; don't duplicate it.
+function __dotfiles_devtools_list
+    printf '%s\n' nodejs deno bun go rustc java npm pnpm yarn cargo pipx uv python git gh docker compose kubectl
 end
 
 function __dotfiles_active_marker --argument-names value active
@@ -378,7 +409,8 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
             if test "$dt_action" = toggle
                 if test (count $argv) -lt 3
                     echo "dot-files: missing tool name for toggle" >&2
-                    echo "Tools: nodejs deno bun go rustc java npm pnpm yarn cargo pipx uv python git gh docker compose kubectl" >&2
+                    set -l tools_list (string join ' ' (__dotfiles_devtools_list))
+                    echo "Tools: $tools_list" >&2
                     return 1
                 end
 
@@ -391,7 +423,8 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                 set -l current_val (grep "^$tool_name =" "$devtools_file" 2>/dev/null | tail -n 1 | string trim | string replace -r '.*=\s*' '' | string trim -c ',"')
                 if test -z "$current_val"
                     echo "dot-files: unknown tool '$tool_name'" >&2
-                    echo "Tools: nodejs deno bun go rustc java npm pnpm yarn cargo pipx uv python git gh docker compose kubectl" >&2
+                    set -l tools_list (string join ' ' (__dotfiles_devtools_list))
+                    echo "Tools: $tools_list" >&2
                     return 1
                 end
 
@@ -420,66 +453,16 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                     if test "$edit_target" = modules
                         set f "$modules_file"
                     end
-                    if not test -f "$f"
-                        echo "dot-files: $f does not exist yet (use --$edit-target to set it first)" >&2
-                        return 1
-                    end
-                    echo "dot-files: editing $f"
-                    if set -q EDITOR
-                        eval "$EDITOR" "$f"
-                    else if type -q nvim
-                        nvim "$f"
-                    else if type -q vim
-                        vim "$f"
-                    else if type -q nano
-                        nano "$f"
-                    else
-                        echo "dot-files: no editor found (set \$EDITOR)" >&2
-                        return 1
-                    end
+                    __dotfiles_edit_file "$f"; or return 1
                     starship-rebuild
                     echo ""
                     __dotfiles_starship_prompt_block
                 case username
-                    set -l f "$username_file"
-                    if not test -f "$f"
-                        echo "dot-files: $f does not exist yet (use --username to set it first)" >&2
-                        return 1
-                    end
-                    echo "dot-files: editing $f"
-                    if set -q EDITOR
-                        eval "$EDITOR" "$f"
-                    else if type -q nvim
-                        nvim "$f"
-                    else if type -q vim
-                        vim "$f"
-                    else if type -q nano
-                        nano "$f"
-                    else
-                        echo "dot-files: no editor found (set \$EDITOR)" >&2
-                        return 1
-                    end
+                    __dotfiles_edit_file "$username_file"; or return 1
                     fastfetch-apply-welcome
                     echo "dot-files: welcome name updated"
                 case dev-tools
-                    set -l f "$devtools_file"
-                    if not test -f "$f"
-                        echo "dot-files: $f does not exist (run: dot-files --dev-tools init)" >&2
-                        return 1
-                    end
-                    echo "dot-files: editing $f"
-                    if set -q EDITOR
-                        eval "$EDITOR" "$f"
-                    else if type -q nvim
-                        nvim "$f"
-                    else if type -q vim
-                        vim "$f"
-                    else if type -q nano
-                        nano "$f"
-                    else
-                        echo "dot-files: no editor found (set \$EDITOR)" >&2
-                        return 1
-                    end
+                    __dotfiles_edit_file "$devtools_file"; or return 1
                     echo "dot-files: dev-tools updated (changes apply on next startup)"
                 case '*'
                     echo "dot-files: unknown edit target '$edit_target'" >&2
@@ -492,5 +475,4 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
             echo "Run 'dot-files' to see usage."
             return 1
     end
-end
 end
