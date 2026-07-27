@@ -224,89 +224,154 @@ Ensure `git_commit` does not conflict with existing `$all_status` or `$ahead_beh
 
 **Location:** `agents/` — empty by default, tracked with `.gitkeep`
 
-`agents/` is an **opt-in skill registry**. Each subdirectory or file inside `agents/` is one self-contained skill: a Fish function, abbreviation set, config snippet, or startup hook. Skills are NOT installed by default. The user chooses which ones to enable during `install.sh` or afterwards via `dot-files --agents`.
+`agents/` is an **opt-in skill registry**. Each skill is a self-contained bundle
+under `agents/skills/<category>/<skill-name>/`. Skills are NOT installed by
+default. The user chooses which ones to enable during `install.sh` or afterwards
+via `dot-files --agents`.
 
 ### 5.1 Skill format
 
-Each skill lives in its own directory under `agents/`:
+Each skill lives in its own directory:
 
 ```text
 agents/
   .gitkeep
-  eza/
-    install.fish       # Fish code to source into the live config
-    uninstall.fish     # Optional: code to remove the skill
-    description.md     # Human-readable description shown during selection
-    deps/              # Optional: files this skill requires from config/
-  starship-extra/
-    install.fish
-    description.md
+  skills/
+    fish/
+      eza/
+        install.fish       # Code to wire the skill into the live config
+        uninstall.fish     # Optional: code to undo the wiring
+        description.md     # One-line description shown during selection
+      lsd/
+        install.fish
+        uninstall.fish
+        description.md
+    prompt/
+      starship-git-commit/
+        install.fish
+        description.md
+    cli/
+      atuin/
+        install.fish
+        description.md
+      direnv/
+        install.fish
+        description.md
+      zoxide/
+        install.fish
+        description.md
 ```
 
-A skill is installed by copying or symlinking its files into `~/.config/fish/` (or the appropriate XDG location). `install.fish` is sourced once at install time to register the function or abbreviation.
+When installed, the skill files are placed under `$HOME/.agents/skills/<category>/<skill-name>/`
+and then wired into the live config (`~/.config/fish/`, `~/.config/starship/`, etc.)
+via symlink or copy, per user choice during install.
+
+Fields inside each skill directory:
+- `install.fish` — Fish script that creates the symlinks/copies/abbrs/functions in the live config
+- `uninstall.fish` — optional Fish script that removes what `install.fish` created
+- `description.md` — one-line plain-text description (first line only) shown during selection
+- Any additional files the skill needs (TOML snippets, conf.d fragments, etc.)
 
 ### 5.2 install.sh behavior
 
-`install.sh` gains an `--agents` flag with three modes:
+`install.sh` gains an `--agents` flag. After the base config install completes,
+the skills prompt runs.
 
-- `--agents all` — install every skill found in `agents/` without prompting
-- `--agents <skill1,skill2>` — install only the listed skills (comma-separated)
-- `--agents` (no value) — enter interactive selection mode
+`--agents` modes:
+- `--agents all` — install every skill without prompting
+- `--agents <cat1>/<skill1>,<cat2>/<skill2>` — install only the listed skills
+- `--agents` (bare flag, no value) — not valid; print usage hint
+- (flag omitted entirely) — skip skills step; base config only
 
-Interactive selection mode:
-1. List every skill found under `agents/` with its `description.md` text
-2. Prompt per skill: `Install <skill-name>? [Y/n/s]` (Y = yes, n = no, s = skip all remaining)
-3. For each selected skill, run its `install.fish` against the live config target
-4. Skipped skills remain in `agents/` but do not touch `~/.config/`
+Install prompt flow for each skill:
+1. Show `description.md` text
+2. Ask: `Install <category>/<skill-name>? [Y/n/s]` (Y = yes, n = no, s = skip remaining)
+3. If yes: ask `Method? [s]ymlink / [c]opy / [n]o`
+   - symlink: `ln -s $HOME/.agents/skills/<cat>/<name>/install.fish ~/.config/fish/...`
+   - copy: `cp -r $HOME/.agents/skills/<cat>/<name>/* ~/.config/fish/...`
+   - no: skip this skill only
 
-If `--agents` is not passed at all, no skills are installed (the base config is installed, the skills step is skipped entirely).
+Claude skills inclusion:
+- During the skills prompt, before listing individual skills, ask:
+  `Include Claude-powered skills? [Y/n/s]`
+- If yes: also list and prompt for every skill under `agents/skills/claude/`
+- If no: skip the `agents/skills/claude/` category entirely
+- This is a one-time gate; all other categories follow the same install prompt regardless
+
+After install:
+- `$HOME/.agents/skills/<category>/<skill-name>/` holds the canonical skill files
+- The live config (`~/.config/fish/`, etc.) contains symlinks or copies pointing into `$HOME/.agents/`
+- This makes it easy to update: `git -C $HOME/.agents pull && dot-files --agents sync`
 
 ### 5.3 dot-files runtime command
 
 `dot-files` gains a `--agents` subcommand for post-install skill management:
 
-- `dot-files --agents list` — list available skills in `agents/` with install status (installed / not installed)
-- `dot-files --agents install <skill>` — install a single skill after the fact
-- `dot-files --agents uninstall <skill>` — remove a skill (runs `uninstall.fish` if present, otherwise warns)
-- `dot-files --agents enable / disable` — alias for install / uninstall
+- `dot-files --agents list` — list available skills under agents/ with install status
+- `dot-files --agents install <category>/<name>` — install a single skill (with symlink/copy prompt)
+- `dot-files --agents uninstall <category>/<name>` — remove a skill (runs `uninstall.fish`)
+- `dot-files --agents sync` — pull latest from agents repo and re-install all selected skills
 
-### 5.4 Skill registry metadata
+### 5.4 Skill registry scan logic
 
-The skill list is derived by scanning `agents/` directories at runtime. No central index file is needed. The scan logic:
+No central index file. The scan at install time:
 
-1. List all subdirectories of `agents/` that contain an `install.fish`
-2. For each, read `description.md` (first non-blank, non-comment line)
-3. Present `<name>: <description>` to the user
-
-Skills that are directories but lack `install.fish` are silently skipped.
+1. List all `agents/skills/<category>/<name>/` directories that contain `install.fish`
+2. Read `description.md` first non-blank line for each
+3. Group by category for the prompt
+4. Skip directories without `install.fish`
 
 ### 5.5 Planned skills (to be created during Phase C)
 
-These are the skills planned for `agents/`. They are NOT installed by default.
+These are the skills planned for `agents/skills/`. None are installed by default.
 
-#### agents/eza/
+#### agents/skills/fish/eza/
 Replace the bundled `ls.fish` fallback with native eza invocations.
-- `install.fish`: symlinks `eza` as `ls`, creates `ll`, `lt`, `lta` abbreviations
-- `description.md`: "Rich directory listings with eza (replaces ls fallback)"
-- Effect when installed: `ls.fish` fallback is bypassed entirely
+- `install.fish`: creates `abbr -a ls eza`, `abbr -a ll 'eza -la --icons'`, etc.
+- `uninstall.fish`: removes those abbreviations
+- `description.md`: "Rich directory listings with eza"
+- Effect: `ls.fish` fallback still exists but eza takes precedence via abbreviation
 
-#### agents/lsd/
+#### agents/skills/fish/lsd/
 Same as eza but for lsd.
-- `install.fish`: symlinks `lsd` as `ls`, creates `ll`, `lt`, `lta` abbreviations
-- `description.md`: "Rich directory listings with lsd (replaces ls fallback)"
+- `install.fish`: creates `abbr -a ls lsd`, `abbr -a ll 'lsd -la'`, etc.
+- `description.md`: "Rich directory listings with lsd"
 
-#### agents/starship-git-commit/
+#### agents/skills/prompt/starship-git-commit/
 Append `$git_commit` short hash to the git prompt segment.
-- `install.fish`: edits `config/starship/modules/git.toml` to add `$git_commit`
+- `install.fish`: patches `config/starship/modules/git.toml` to add `$git_commit`
+- `uninstall.fish`: reverts the patch
 - `description.md`: "Show short git commit hash in prompt"
 
-#### actors/atuin/
+#### agents/skills/cli/atuin/
 Replace Fish native history with Atuin sync.
-- `install.fish`: adds `atuin init fish | source` to a new `conf.d/99-atuin.fish`
+- `install.fish`: writes `atuin init fish | source` into `conf.d/99-atuin.fish`
+- `uninstall.fish`: removes `conf.d/99-atuin.fish`
 - `description.md`: "Sync shell history across machines with Atuin"
+- **Category:** claude (Claude-powered skill)
 
-#### agents/direnv/
+#### agents/skills/cli/direnv/
 Per-project environment loading.
+- `install.fish`: writes `direnv hook fish | source` into `conf.d/20-direnv.fish`
+- `uninstall.fish`: removes `conf.d/20-direnv.fish`
+- `description.md`: "Load .envrc per-project with direnv"
+- **Category:** claude (Claude-powered skill)
+
+#### agents/skills/cli/zoxide/
+Smart directory jumping.
+- `install.fish`: writes `zoxide init fish | source` into `conf.d/25-zoxide.fish` and `abbr -a cd z`
+- `uninstall.fish`: removes `conf.d/25-zoxide.fish` and the abbreviation
+- `description.md`: "Jump to frequently visited directories with zoxide"
+- **Category:** claude (Claude-powered skill)
+
+### 5.6 Category conventions
+
+- `fish/` — pure Fish functions, abbreviations, and startup hooks
+- `prompt/` — Starship or Fastfetch prompt modifications
+- `cli/` — CLI tool integrations that add Fish hooks
+- `claude/` — skills that require or invoke Claude Code features; gated behind the "Include Claude-powered skills?" prompt
+
+Categories are discovered automatically from the directory names under `agents/skills/`. Adding a new category requires no code change — just create the directory.
 - `install.fish`: adds `direnv hook fish | source` to `conf.d/20-direnv.fish`
 - `description.md`: "Load .envrc per-project with direnv"
 
@@ -344,14 +409,14 @@ An agent executing this plan must follow this order. Do not reorder.
 - Task 2.6: Add short git commit hash to git.toml
 
 **Phase D -- Agents / Skills system**
-- Task 5.1: Create agents/eza/ with install.fish, uninstall.fish, description.md
-- Task 5.2: Create agents/lsd/ with install.fish, uninstall.fish, description.md
-- Task 5.3: Create agents/starship-git-commit/ with install.fish, description.md
-- Task 5.4: Create agents/atuin/ with install.fish, description.md
-- Task 5.5: Create agents/direnv/ with install.fish, description.md
-- Task 5.6: Create agents/zoxide/ with install.fish, description.md
-- Task 5.7: Update install.sh with --agents flag and interactive selection
-- Task 5.8: Add dot-files --agents list/install/uninstall subcommands
+- Task 5.1: Create agents/skills/fish/eza/ with install.fish, uninstall.fish, description.md
+- Task 5.2: Create agents/skills/fish/lsd/ with install.fish, uninstall.fish, description.md
+- Task 5.3: Create agents/skills/prompt/starship-git-commit/ with install.fish, uninstall.fish, description.md
+- Task 5.4: Create agents/skills/cli/atuin/ with install.fish, uninstall.fish, description.md
+- Task 5.5: Create agents/skills/cli/direnv/ with install.fish, uninstall.fish, description.md
+- Task 5.6: Create agents/skills/cli/zoxide/ with install.fish, uninstall.fish, description.md
+- Task 5.7: Update install.sh with --agents flag, interactive prompt, symlink/copy choice, Claude gating
+- Task 5.8: Add dot-files --agents list/install/uninstall/sync subcommands (runtime management)
 
 **Phase E -- Documentation sync (after all code changes)**
 - Task 4.1: Update docs/fish.md with new conf.d files, agents/ system

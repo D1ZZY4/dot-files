@@ -217,87 +217,264 @@ write_welcome_name() {
 # Agents / Skills system
 # ---------------------------------------------------------------------------
 
-list_agents() {
-  local agents_dir="$1"
-  if [ ! -d "$agents_dir" ]; then
+# Read the first non-blank, non-comment line from description.md.
+agents_skill_desc() {
+  local desc_file="$1"
+  if [ ! -f "$desc_file" ]; then
     return
   fi
-  info "Available skills in agents/:"
-  local found=0
-  for skill_dir in "$agents_dir"/*; do
-    [ -d "$skill_dir" ] || continue
-    local skill_name
-    skill_name=$(basename "$skill_dir")
-    [ "$skill_name" = ".git" ] && continue
-    local desc=""
-    if [ -f "$skill_dir/description.md" ]; then
-      desc=$(head -n 1 "$skill_dir/description.md" | tr -d '\r')
-    fi
-    if [ -n "$desc" ]; then
-      info "  $skill_name: $desc"
-    else
-      info "  $skill_name"
-    fi
-    found=$((found + 1))
-  done
-  if [ "$found" -eq 0 ]; then
-    info "  (none — agents/ is empty)"
-  fi
+  while IFS= read -r line; do
+    line=$(echo "$line" | tr -d '\r')
+    [ -z "$line" ] && continue
+    case "$line" in
+      '#'*) continue ;;
+    esac
+    echo "$line"
+    return
+  done < "$desc_file"
 }
 
-install_agent() {
-  local skill_name="$1"
+# List all skills under agents/skills/, grouped by category.
+# Output: one line per skill: "<category>/<name>: <description>"
+agents_list_skills() {
+  local agents_dir="$1"
+  local skills_dir="$agents_dir/skills"
+  if [ ! -d "$skills_dir" ]; then
+    return
+  fi
+  local category
+  for category_dir in "$skills_dir"/*; do
+    [ -d "$category_dir" ] || continue
+    category=$(basename "$category_dir")
+    local skill_dir
+    for skill_dir in "$category_dir"/*; do
+      [ -d "$skill_dir" ] || continue
+      local skill_name
+      skill_name=$(basename "$skill_dir")
+      [ "$skill_name" = ".git" ] && continue
+      if [ ! -f "$skill_dir/install.fish" ]; then
+        continue
+      fi
+      local desc
+      desc=$(agents_skill_desc "$skill_dir/description.md")
+      if [ -z "$desc" ]; then
+        desc=""
+      fi
+      printf '%s/%s: %s\n' "$category" "$skill_name" "$desc"
+    done
+  done
+}
+
+# Count total installable skills.
+agents_count_skills() {
+  local agents_dir="$1"
+  local skills_dir="$agents_dir/skills"
+  if [ ! -d "$skills_dir" ]; then
+    return
+  fi
+  local count=0
+  local category
+  for category_dir in "$skills_dir"/*; do
+    [ -d "$category_dir" ] || continue
+    local skill_dir
+    for skill_dir in "$category_dir"/*; do
+      [ -d "$skill_dir" ] || continue
+      [ -f "$skill_dir/install.fish" ] || continue
+      count=$((count + 1))
+    done
+  done
+  echo "$count"
+}
+
+# Install a single skill into $HOME/.agents/ and wire it into the live config.
+# $1 = category, $2 = skill name, $3 = method: symlink|copy
+agents_install_skill() {
+  local category="$1"
+  local skill_name="$2"
+  local method="$3"
   local agents_dir="$SOURCE_DIR/agents"
-  local skill_dir="$agents_dir/$skill_name"
+  local skill_dir="$agents_dir/skills/$category/$skill_name"
+  local target_dir="$HOME/.agents/skills/$category/$skill_name"
+
   if [ ! -d "$skill_dir" ]; then
-    info "Skipping unknown skill: $skill_name"
+    info "Skipping $category/$skill_name: source directory not found"
     return
   fi
   if [ ! -f "$skill_dir/install.fish" ]; then
-    info "Skipping $skill_name: no install.fish"
+    info "Skipping $category/$skill_name: no install.fish"
     return
   fi
-  info "Installing skill: $skill_name"
+
+  info "Installing skill: $category/$skill_name ($method)"
+
   if is_dry_run; then
-    echo "[dry-run] fish -c 'source $skill_dir/install.fish'"
-  else
-    fish -c "source '$skill_dir/install.fish'" 2>&1
+    echo "[dry-run] mkdir -p $target_dir"
+    echo "[dry-run] $method skill files to $target_dir"
+    echo "[dry-run] fish -c 'source $target_dir/install.fish'"
+    return
   fi
+
+  # Place canonical skill files under $HOME/.agents/
+  run mkdir -p "$target_dir"
+  for f in "$skill_dir"/*; do
+    [ -f "$f" ] || continue
+    local fname
+    fname=$(basename "$f")
+    if [ "$method" = symlink ]; then
+      run ln -sf "$f" "$target_dir/$fname"
+    else
+      run cp -f "$f" "$target_dir/$fname"
+    fi
+  done
+
+  # Run the skill's install hook
+  fish -c "source '$target_dir/install.fish'" 2>&1
 }
 
+# Main agents installer.
+# Honors AGENTS_MODE:
+#   all          — install every skill without prompting
+#   <cat>/<name> — comma-separated list of specific skills
+#   (empty)      — skip skills entirely
 install_agents() {
   if [ -z "$AGENTS_MODE" ]; then
     return
   fi
+
   local agents_dir="$SOURCE_DIR/agents"
-  if [ ! -d "$agents_dir" ]; then
-    info "agents/ directory not found in source — skipping skills"
+  local skills_dir="$agents_dir/skills"
+  if [ ! -d "$skills_dir" ]; then
+    info "agents/skills/ not found in source — skipping skills"
     return
   fi
+
   echo ""
   info "Skills selection"
-  list_agents "$agents_dir"
+  info "Skills will be installed to: $HOME/.agents/skills/<category>/<skill-name>/"
+  info "and wired into your live config via symlink or copy."
   echo ""
 
-  case "$AGENTS_MODE" in
-    all)
-      info "Installing all skills..."
-      for skill_dir in "$agents_dir"/*; do
-        [ -d "$skill_dir" ] || continue
-        install_agent "$(basename "$skill_dir")"
-      done
-      ;;
-    *)
-      info "Installing selected skills: $AGENTS_MODE"
-      local IFS=','
-      for skill_name in $AGENTS_MODE; do
-        skill_name=$(echo "$skill_name" | tr -d '[:space:]')
-        [ -z "$skill_name" ] && continue
-        install_agent "$skill_name"
-      done
-      ;;
-  esac
+  # Whether to include the claude/ category
+  local include_claude=1
+  if [ "$AGENTS_MODE" != "all" ]; then
+    # Check if claude/ is explicitly in the requested list
+    case "$AGENTS_MODE" in
+      *"claude/"*) include_claude=1 ;;
+      *) include_claude=0 ;;
+    esac
+  fi
+
+  # Collect skills to offer
+  local -a skill_list
+  local category
+  for category_dir in "$skills_dir"/*; do
+    [ -d "$category_dir" ] || continue
+    category=$(basename "$category_dir")
+    # Skip claude category unless explicitly requested
+    if [ "$category" = "claude" ] && [ "$include_claude" -eq 0 ]; then
+      continue
+    fi
+    # Skip claude category for --agents all; ask separate gate
+    if [ "$category" = "claude" ] && [ "$AGENTS_MODE" = "all" ]; then
+      continue
+    fi
+    local skill_dir
+    for skill_dir in "$category_dir"/*; do
+      [ -d "$skill_dir" ] || continue
+      local skill_name
+      skill_name=$(basename "$skill_dir")
+      [ "$skill_name" = ".git" ] && continue
+      [ -f "$skill_dir/install.fish" ] || continue
+      skill_list+=("${category}/${skill_name}")
+    done
+  done
+
+  # If --agents all, ask about claude skills separately
+  if [ "$AGENTS_MODE" = "all" ]; then
+    if [ -d "$skills_dir/claude" ]; then
+      echo "Include Claude-powered skills? [Y/n/s]"
+      printf "  These skills may invoke Claude Code features during install. [Y/n]: "
+      read -r claude_answer
+      case "$claude_answer" in
+        n|N|no) ;;
+        s|S|skip) include_claude=0 ;;
+        *)
+          include_claude=1
+          local claude_skill_dir
+          for claude_skill_dir in "$skills_dir"/claude/*; do
+            [ -d "$claude_skill_dir" ] || continue
+            local cn
+            cn=$(basename "$claude_skill_dir")
+            [ "$cn" = ".git" ] && continue
+            [ -f "$claude_skill_dir/install.fish" ] || continue
+            skill_list+=("claude/$cn")
+          done
+          ;;
+      esac
+      echo ""
+    fi
+  fi
+
+  # Install each skill
+  local -a installed
+  local skipped
+  for skill_spec in "${skill_list[@]}"; do
+    local cat name
+    cat="${skill_spec%%/*}"
+    name="${skill_spec#*/}"
+    local desc
+    desc=$(agents_skill_desc "$agents_dir/skills/$cat/$name/description.md")
+
+    # Skip already-installed check
+    if [ -d "$HOME/.agents/skills/$cat/$name" ]; then
+      info "$cat/$name: already installed (skipping)"
+      continue
+    fi
+
+    # Prompt
+    echo "Install $cat/$name? ${desc:+($desc) }[Y/n/s]"
+    printf "  [Y/n/s]: "
+    read -r answer
+    case "$answer" in
+      n|N|no)
+        info "$cat/$name: skipped by user"
+        skipped="$skipped $cat/$name"
+        continue
+        ;;
+      s|S|skip)
+        info "$cat/$name: skipped (and all remaining)"
+        skipped="$skipped $cat/$name"
+        break
+        ;;
+      *) ;;&
+    esac
+
+    # Method prompt
+    echo "  Install method for $cat/$name:"
+    echo "    [s] symlink (recommended: updates to skills repo propagate)"
+    echo "    [c] copy (self-contained: skills repo can be removed after install)"
+    echo "    [n] no, skip this one"
+    printf "  [s/c/n]: "
+    read -r method_answer
+    case "$method_answer" in
+      c|C|copy) method="copy" ;;
+      n|N|no)
+        info "$cat/$name: skipped by user"
+        skipped="$skipped $cat/$name"
+        continue
+        ;;
+      *) method="symlink" ;;
+    esac
+
+    agents_install_skill "$cat" "$name" "$method"
+    installed="$installed $cat/$name"
+  done
+
   echo ""
+  info "Skills installed:$installed"
+  if [ -n "$skipped" ]; then
+    info "Skills skipped:$skipped"
+  fi
 }
 
 SOURCE_DIR=$(resolve_source_dir)
