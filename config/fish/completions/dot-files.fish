@@ -28,3 +28,4 @@ complete -c dot-files -l list-modules -d 'List modules and their status'
 complete -c dot-files -l dev-tools -x -a 'init toggle' -d 'Manage the dev-tools config or toggle a tool'
 complete -c dot-files -n '__fish_seen_subcommand_from toggle' -f -a \
     'nodejs deno bun go rustc java npm pnpm yarn cargo pipx uv python git gh docker compose kubectl'
+complete -c dot-files -l edit -x -a 'style color modules username dev-tools' -d 'Open a preference file in \$EDITOR and rebuild'

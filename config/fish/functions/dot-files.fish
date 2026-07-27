@@ -412,9 +412,85 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
             echo "Use: init, toggle" >&2
             return 1
 
+        case --edit -e
+            set -l edit_target $argv[2]
+            switch "$edit_target"
+                case style color modules
+                    set -l f "$starship_dir/$edit_target"
+                    if test "$edit_target" = modules
+                        set f "$modules_file"
+                    end
+                    if not test -f "$f"
+                        echo "dot-files: $f does not exist yet (use --$edit-target to set it first)" >&2
+                        return 1
+                    end
+                    echo "dot-files: editing $f"
+                    if set -q EDITOR
+                        eval "$EDITOR" "$f"
+                    else if type -q nvim
+                        nvim "$f"
+                    else if type -q vim
+                        vim "$f"
+                    else if type -q nano
+                        nano "$f"
+                    else
+                        echo "dot-files: no editor found (set \$EDITOR)" >&2
+                        return 1
+                    end
+                    starship-rebuild
+                    echo ""
+                    __dotfiles_starship_prompt_block
+                case username
+                    set -l f "$username_file"
+                    if not test -f "$f"
+                        echo "dot-files: $f does not exist yet (use --username to set it first)" >&2
+                        return 1
+                    end
+                    echo "dot-files: editing $f"
+                    if set -q EDITOR
+                        eval "$EDITOR" "$f"
+                    else if type -q nvim
+                        nvim "$f"
+                    else if type -q vim
+                        vim "$f"
+                    else if type -q nano
+                        nano "$f"
+                    else
+                        echo "dot-files: no editor found (set \$EDITOR)" >&2
+                        return 1
+                    end
+                    fastfetch-apply-welcome
+                    echo "dot-files: welcome name updated"
+                case dev-tools
+                    set -l f "$devtools_file"
+                    if not test -f "$f"
+                        echo "dot-files: $f does not exist (run: dot-files --dev-tools init)" >&2
+                        return 1
+                    end
+                    echo "dot-files: editing $f"
+                    if set -q EDITOR
+                        eval "$EDITOR" "$f"
+                    else if type -q nvim
+                        nvim "$f"
+                    else if type -q vim
+                        vim "$f"
+                    else if type -q nano
+                        nano "$f"
+                    else
+                        echo "dot-files: no editor found (set \$EDITOR)" >&2
+                        return 1
+                    end
+                    echo "dot-files: dev-tools updated (changes apply on next startup)"
+                case '*'
+                    echo "dot-files: unknown edit target '$edit_target'" >&2
+                    echo "Usage: dot-files --edit style|color|modules|username|dev-tools" >&2
+                    return 1
+            end
+
         case '*'
             echo "dot-files: unknown option '$argv[1]'" >&2
             echo "Run 'dot-files' to see usage."
             return 1
     end
+end
 end
