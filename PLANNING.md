@@ -25,37 +25,18 @@ All syntax checks pass:
 
 ---
 
-## Section 1: Pending Bugs (must fix before any new features)
+## Section 1: Completed (already resolved in git history)
 
-### 1.1 starship-rebuild wrapper adds unnecessary subprocess overhead
+The following items are already resolved. Do not redo them.
 
-**File:** `config/fish/functions/starship-rebuild.fish`
-**Current content (line 4):** `fish "$HOME/.config/starship/build.fish"`
-**Problem:** Every call to `starship-rebuild` from inside another fish script spawns a full new fish subprocess just to run one file. Five call sites in dot-files.fish and zz-fastfetch.fish each pay 5-15ms startup cost for zero logic gained.
-**Required change:** Inline the one-liner. Replace each call site with `fish "$HOME/.config/starship/build.fish"` directly, or prefix with `eval` so Fish sources the file in-process.
-**Acceptance:** `starship-rebuild.fish` is deleted. Every former caller runs `fish "$HOME/.config/starship/build.fish"` inline. `fish --command "source dot-files.fish"` still returns 0.
+- **1.1 starship-rebuild wrapper** — Deleted `starship-rebuild.fish` (commit `75101db`). All call sites inlined with `fish "$build_fish"`. Implemented in `feat(prompt): add short git commit hash to git module`.
+- **1.2 Preview loop isolates from live prefs** — `build.fish` reads `STARSHIP_STYLE_PREVIEW`/`STARSHIP_COLOR_PREVIEW` env overrides; the preview loop in `__dotfiles_show_catalog` uses these instead of writing to live files. Implemented in `fix(prompt-preview): isolate style/color preview from live preference files`.
+- **1.3 dev-tools.fish no longer uses bash -c** — All tool checks use Fish-native pipelines (`string replace -r`). Implemented in `feat(fish): apply skill-guided improvements`.
+- **1.4 __command_version injection documented** — Security invariant noted in dev-tools.fish (commit `bad2042`).
 
-### 1.2 `__dotfiles_show_catalog` mutates live preference files 8 times
+These items remain in the plan for reference only; skip them during execution.
 
-**File:** `config/fish/functions/dot-files.fish`, lines 199-219
-**Current behavior:** The style preview loop (5 iterations) and color preview loop (3 iterations) each call `__dotfiles_write_style_file` / `__dotfiles_write_color_file` which writes to the live `~/.config/starship/style` and `~/.config/starship/color` files on disk. If the user hits Ctrl-C during `dot-files` (no args), the last-previewed value is left on disk as their new preference.
-**Required change:** Write preview values to temp files (`$style_file.preview`, `$color_file.preview`), point `build.fish` at those temp files for the preview run, and delete them after. Or, pass style/color as environment variables that `build.fish` reads as overrides.
-**Acceptance:** Running `dot-files` does not modify the contents of `~/.config/starship/style` or `~/.config/starship/color` unless the user explicitly ran `--style` or `--color`. Ctrl-C during preview leaves prefs unchanged.
-
-### 1.3 `dev-tools.fish` uses 17 sequential `bash -c` subprocesses
-
-**File:** `config/fastfetch/dev-tools.fish`, lines 21-35 (`__command_version`)
-**Current behavior:** Each tool version check spawns `bash -c "<version_command>"`, then the tool itself (e.g. `node --version`). That is 34 subprocesses in sequence.
-**Required change:** Use Fish-native `string replace -r` and `string match -r` instead of the `sed -E` patterns inside the version_command strings. Remove the `bash -c` layer entirely. Each version check becomes a single tool subprocess (the tool's own `--version` call piped through Fish builtins).
-**Acceptance:** `__command_version` no longer calls `bash -c`. The `version_command` strings are simplified to Fish-native pipelines. Output of the Dev Tools block is identical.
-
-### 1.4 `__command_version` uses `eval` (injection surface)
-
-**File:** `config/fastfetch/dev-tools.fish`, line 27 (current)
-**Already fixed in session:** Changed `eval $version_command` to `bash -c "$version_command"`.
-**Residual risk:** `bash -c` is still a shell-injection vector if a version_command string is ever derived from user input.
-**Required change:** Ensure all version_command strings are hardcoded literals (they already are). Add a comment in `__command_version` documenting that version_command must never be user-controlled. No functional change needed, only documentation.
-**Acceptance:** A comment is present in dev-tools.fish near line 27 stating the security invariant.
+## Section 2: Planned Features (implement in order)
 
 ---
 
@@ -222,15 +203,9 @@ Ensure `git_commit` does not conflict with existing `$all_status` or `$ahead_beh
 
 ## Section 5: Execution Order
 
-An agent executing this plan must follow this order. Do not reorder.
+Phases A and B are already complete. Agents should begin at Phase C.
 
-**Phase A -- Critical fixes (must land before any new features)**
-- Task 1.3: Replace bash -c in dev-tools.fish __command_version with Fish-native string replace
-- Task 1.2: Make __dotfiles_show_catalog write previews to temp files, not live prefs
-
-**Phase B -- Subprocess overhead reduction**
-- Task 3.2: Inline starship-rebuild wrapper (delete the function, inline at call sites)
-- Task 3.3: Confirm __dotfiles_edit_file has documentation comment
+**Phase C -- New features (in priority order)**
 
 **Phase C -- New features (in priority order)**
 - Task 2.5: Add conf.d/15-paths.fish with fish_user_paths
