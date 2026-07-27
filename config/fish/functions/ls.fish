@@ -111,13 +111,23 @@ function __ls_long_icons -a target show_all
         end
 
         set -l icon (__ls_icon "$name" "$full")
+        # GNU stat (-c) and BSD/macOS stat (-f) format strings differ.
+        # Each field falls back gracefully if the primary form is unsupported.
         set -l perms (command stat -c '%A' -- "$full" 2>/dev/null)
+        or set -l perms (command stat -f '%Lp' -- "$full" 2>/dev/null)
         set -l links (command stat -c '%h' -- "$full" 2>/dev/null)
+        or set -l links (command stat -f '%l' -- "$full" 2>/dev/null)
         set -l user (command stat -c '%U' -- "$full" 2>/dev/null)
+        or set -l user (command stat -f '%Su' -- "$full" 2>/dev/null)
         set -l group (command stat -c '%G' -- "$full" 2>/dev/null)
+        or set -l group (command stat -f '%Sg' -- "$full" 2>/dev/null)
         set -l size (command stat -c '%s' -- "$full" 2>/dev/null)
+        or set -l size (command stat -f '%z' -- "$full" 2>/dev/null)
         set -l mtime_raw (command stat -c '%y' -- "$full" 2>/dev/null)
+        or set -l mtime_raw (command stat -f '%Sm' -- "$full" 2>/dev/null)
+        # GNU date (-d) vs BSD/macOS date (-j -f). Both format a timestamp string.
         set -l mtime (command date -d "$mtime_raw" '+%b %e %H:%M' 2>/dev/null)
+        or set -l mtime (command date -j -f '%b %e %H:%M:%S %Y' "$mtime_raw" '+%b %e %H:%M' 2>/dev/null)
         set -l display "$name"
 
         if test -L "$full"

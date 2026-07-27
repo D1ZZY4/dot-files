@@ -270,8 +270,15 @@ function __dt_reload
     set -q __dt_config_file_mtime; or set -U __dt_config_file_mtime 0
     set -l current_mtime
     if command -v stat >/dev/null 2>&1
+        # GNU stat (-c) vs BSD/macOS stat (-f). Both return epoch seconds.
         stat -c '%Y' "$devtools_file" 2>/dev/null
+        or stat -f '%m' "$devtools_file" 2>/dev/null
     end
+
+    # Security invariant: all version_command strings in __dt_render are hardcoded
+    # literals. They must never be derived from user input — they are piped through
+    # Fish builtins (string replace), not eval or bash -c, so injection is not
+    # possible as long as this invariant holds.
 
     if test -z "$current_mtime"
         # OS without GNU stat — just render.

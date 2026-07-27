@@ -97,9 +97,11 @@ resolve_source_dir() {
     return
   fi
 
-  # $0 is unreliable when piped (e.g. curl | sh). Skip directly to the clone
-  # path if stdin is not a regular file (script is being read from a pipe).
-  if [ ! -f /dev/stdin ] && [ -n "$DOTFILES_REPO_URL" ]; then
+  # $0 is unreliable when piped (e.g. curl | sh). If stdin is not seekable
+  # (pipe/redirect), skip the local-script-dir detection and go straight to
+  # the clone path. /dev/stdin may not exist on all systems, so test it
+  # indirectly via [ -t 0 ] (true when stdin is a terminal).
+  if [ ! -t 0 ] && [ -n "$DOTFILES_REPO_URL" ]; then
     :
   else
     local script_dir
