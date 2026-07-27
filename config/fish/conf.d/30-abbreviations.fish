@@ -91,3 +91,5 @@ abbr -a tf terraform
 abbr -a tfi 'terraform init'
 abbr -a tfp 'terraform plan'
 abbr -a tfa 'terraform apply'
+
+abbr -a dotf 'dot-files'
