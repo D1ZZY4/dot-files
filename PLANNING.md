@@ -220,80 +220,106 @@ Ensure `git_commit` does not conflict with existing `$all_status` or `$ahead_beh
 
 ---
 
-## Section 5: Agents Folder
+## Section 5: Agents / Skills System
 
-**Location:** `agents/` (already created by user, currently empty)
+**Location:** `agents/` — empty by default, tracked with `.gitkeep`
 
-Each file in `agents/` is a markdown document defining a specialized subagent.
-Format: standard Claude Agent markdown with `name`, `description`, `tools`, `model`, and `prompt`.
+`agents/` is an **opt-in skill registry**. Each subdirectory or file inside `agents/` is one self-contained skill: a Fish function, abbreviation set, config snippet, or startup hook. Skills are NOT installed by default. The user chooses which ones to enable during `install.sh` or afterwards via `dot-files --agents`.
 
-### Agent definitions to create:
+### 5.1 Skill format
 
-#### agents/code-reviewer.md
-```yaml
----
-name: code-reviewer
-description: Review Fish shell scripts, install.sh, and config files for correctness, quoting, portability, and Fish best practices.
-tools: Read, Edit, Bash, Grep, Glob
-model: sonnet
----
-Review the dot-files project files for: unquoted variables, reversed redirects, find -prune bugs, cat antipatterns, sed -i portability, eval injection, dead code, and Fish syntax errors. Every finding must include file path, line number, severity (critical/high/medium/low), and concrete fix. Run fish --command "source <file>" on every .fish file and report any syntax errors.
+Each skill lives in its own directory under `agents/`:
+
+```text
+agents/
+  .gitkeep
+  eza/
+    install.fish       # Fish code to source into the live config
+    uninstall.fish     # Optional: code to remove the skill
+    description.md     # Human-readable description shown during selection
+    deps/              # Optional: files this skill requires from config/
+  starship-extra/
+    install.fish
+    description.md
 ```
 
-#### agents/fish-linter.md
-```yaml
----
-name: fish-linter
-description: Validate all Fish shell files for syntax, best practices, and autoloading correctness.
-tools: Bash, Read, Grep, Glob
-model: haiku
----
-Run fish --command "source <file>" on every .fish file under config/fish/ and config/fastfetch/. Report any syntax errors, undefined function references, missing dependencies, or scope violations (-g/-U/-x misuse). Confirm that every function in functions/ is autoloadable (filename matches function name exactly). Check that conf.d/ files are idempotent (safe to source multiple times).
-```
+A skill is installed by copying or symlinking its files into `~/.config/fish/` (or the appropriate XDG location). `install.fish` is sourced once at install time to register the function or abbreviation.
 
-#### agents/install-tester.md
-```yaml
----
-name: install-tester
-description: Test install.sh in dry-run mode and validate its logic paths.
-tools: Bash, Read
-model: haiku
----
-Run bash -n install.sh. Then run DRY_RUN=1 DOTFILES_DIR=$(pwd) bash install.sh and verify: it prints [dry-run] for every mutating command, it finds the source directory correctly, it plans to install all expected files, it does not modify any real files. Then test the curl-pipe detection logic: simulate non-tty stdin and verify DOTFILES_REPO_URL fallback is used. Run each flag: --copy, --symlink, --help, --welcome "Test", unknown flag. Report pass/fail for each.
-```
+### 5.2 install.sh behavior
 
-#### agents/starship-configurator.md
-```yaml
----
-name: starship-configurator
-description: Validate and improve Starship TOML modules and build.fish.
-tools: Read, Edit, Bash, Fish
-model: sonnet
----
-Run fish "$HOME/.config/starship/build.fish" (or the project's build.fish) and confirm it generates valid TOML. Check that every @LEFT@/@RIGHT@/@PALETTE@ token in modules/*.toml is replaced. Verify the palette section is at the end of the generated file. Check that disabled modules in modules.conf are correctly skipped. Validate that the style and color preference files contain valid values. Report any module that references an undefined palette token.
-```
+`install.sh` gains an `--agents` flag with three modes:
 
-#### agents/startup-profiler.md
-```yaml
----
-name: startup-profiler
-description: Profile Fish shell startup time and identify bottlenecks in conf.d/ and functions/.
-tools: Bash, Fish
-model: haiku
----
-Measure Fish startup time with: time fish -i -c exit. Then measure with each conf.d/ file disabled one by one. Identify the slowest files. Check for unnecessary subprocess spawning at startup (zz-fastfetch.fish background process is expected, others should be near-instant). Report the 3 slowest startup contributors with millisecond estimates and suggested fixes.
-```
+- `--agents all` — install every skill found in `agents/` without prompting
+- `--agents <skill1,skill2>` — install only the listed skills (comma-separated)
+- `--agents` (no value) — enter interactive selection mode
 
-#### agents/docs-sync.md
-```yaml
----
-name: docs-sync
-description: Ensure documentation matches the actual implementation.
-tools: Read, Grep, Glob, Bash
-model: sonnet
----
-Cross-check docs/*.md against the actual code: every function mentioned in docs/fish.md exists in config/fish/functions/, every flag mentioned in docs/customization.md is handled in dot-files.fish, every preference file path in docs is correct, every command example exits 0 when run. Report mismatches with exact file paths and corrected text.
-```
+Interactive selection mode:
+1. List every skill found under `agents/` with its `description.md` text
+2. Prompt per skill: `Install <skill-name>? [Y/n/s]` (Y = yes, n = no, s = skip all remaining)
+3. For each selected skill, run its `install.fish` against the live config target
+4. Skipped skills remain in `agents/` but do not touch `~/.config/`
+
+If `--agents` is not passed at all, no skills are installed (the base config is installed, the skills step is skipped entirely).
+
+### 5.3 dot-files runtime command
+
+`dot-files` gains a `--agents` subcommand for post-install skill management:
+
+- `dot-files --agents list` — list available skills in `agents/` with install status (installed / not installed)
+- `dot-files --agents install <skill>` — install a single skill after the fact
+- `dot-files --agents uninstall <skill>` — remove a skill (runs `uninstall.fish` if present, otherwise warns)
+- `dot-files --agents enable / disable` — alias for install / uninstall
+
+### 5.4 Skill registry metadata
+
+The skill list is derived by scanning `agents/` directories at runtime. No central index file is needed. The scan logic:
+
+1. List all subdirectories of `agents/` that contain an `install.fish`
+2. For each, read `description.md` (first non-blank, non-comment line)
+3. Present `<name>: <description>` to the user
+
+Skills that are directories but lack `install.fish` are silently skipped.
+
+### 5.5 Planned skills (to be created during Phase C)
+
+These are the skills planned for `agents/`. They are NOT installed by default.
+
+#### agents/eza/
+Replace the bundled `ls.fish` fallback with native eza invocations.
+- `install.fish`: symlinks `eza` as `ls`, creates `ll`, `lt`, `lta` abbreviations
+- `description.md`: "Rich directory listings with eza (replaces ls fallback)"
+- Effect when installed: `ls.fish` fallback is bypassed entirely
+
+#### agents/lsd/
+Same as eza but for lsd.
+- `install.fish`: symlinks `lsd` as `ls`, creates `ll`, `lt`, `lta` abbreviations
+- `description.md`: "Rich directory listings with lsd (replaces ls fallback)"
+
+#### agents/starship-git-commit/
+Append `$git_commit` short hash to the git prompt segment.
+- `install.fish`: edits `config/starship/modules/git.toml` to add `$git_commit`
+- `description.md`: "Show short git commit hash in prompt"
+
+#### actors/atuin/
+Replace Fish native history with Atuin sync.
+- `install.fish`: adds `atuin init fish | source` to a new `conf.d/99-atuin.fish`
+- `description.md`: "Sync shell history across machines with Atuin"
+
+#### agents/direnv/
+Per-project environment loading.
+- `install.fish`: adds `direnv hook fish | source` to `conf.d/20-direnv.fish`
+- `description.md`: "Load .envrc per-project with direnv"
+
+#### agents/zoxide/
+Smart directory jumping.
+- `install.fish`: adds `zoxide init fish | source` to `conf.d/25-zoxide.fish` and `abbr -a cd z`
+- `description.md`: "Jump to frequently visited directories with zoxide"
+
+### 5.6 Out of scope for agents/
+
+- Skills that require non-Fish runtime dependencies (Python, Node) without a documented install path
+- Skills that mutate system state outside `~/.config/` (global PATH, system services)
+- Skills that replace core config (Fish greeting suppression, Starship init) — those stay in base config
 
 ---
 
@@ -317,14 +343,20 @@ An agent executing this plan must follow this order. Do not reorder.
 - Task 2.3: Implement dot-files --status
 - Task 2.6: Add short git commit hash to git.toml
 
-**Phase D -- Documentation sync (after all code changes)**
-- Task 4.1: Update docs/fish.md
-- Task 4.2: Update docs/customization.md
-- Task 4.3: Update README.md
+**Phase D -- Agents / Skills system**
+- Task 5.1: Create agents/eza/ with install.fish, uninstall.fish, description.md
+- Task 5.2: Create agents/lsd/ with install.fish, uninstall.fish, description.md
+- Task 5.3: Create agents/starship-git-commit/ with install.fish, description.md
+- Task 5.4: Create agents/atuin/ with install.fish, description.md
+- Task 5.5: Create agents/direnv/ with install.fish, description.md
+- Task 5.6: Create agents/zoxide/ with install.fish, description.md
+- Task 5.7: Update install.sh with --agents flag and interactive selection
+- Task 5.8: Add dot-files --agents list/install/uninstall subcommands
 
-**Phase E -- Agent bootstrap**
-- Create all 6 agent markdown files in agents/ from the specs in Section 5
-- Validate each agent file parses correctly
+**Phase E -- Documentation sync (after all code changes)**
+- Task 4.1: Update docs/fish.md with new conf.d files, agents/ system
+- Task 4.2: Update docs/customization.md with --edit, --doctor, --agents
+- Task 4.3: Update README.md with agents/ section and new CLI flags
 
 **Phase F -- Validation gate (required before declaring done)**
 1. `bash -n install.sh` returns 0

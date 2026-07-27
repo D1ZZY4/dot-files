@@ -12,6 +12,7 @@ DRY_RUN=${DRY_RUN:-0}
 # Accept common truthy values: 1, true, yes, on
 is_dry_run() { case "${DRY_RUN}" in 1|true|yes|on) return 0 ;; *) return 1 ;; esac }
 DOTFILES_WELCOME_NAME=${DOTFILES_WELCOME_NAME:-}
+AGENTS_MODE=${AGENTS_MODE:-}  # all | comma-separated list | empty (skip)
 
 print_usage() {
   cat <<'EOF'
@@ -22,6 +23,7 @@ Options:
   --symlink           Create symlinks (default).
   --dry-run           Show planned changes without modifying the system.
   --welcome NAME      Set Fastfetch welcome title (writes ~/.config/starship/username).
+  --agents VALUE      Install optional skills from agents/ (all, <name>, or <name1,name2>).
   --help              Show this help message.
 
 Environment variables:
@@ -65,6 +67,14 @@ while [ "$#" -gt 0 ]; do
         exit 1
       fi
       DOTFILES_WELCOME_NAME="$1"
+      ;;
+    --agents)
+      shift
+      if [ "$#" -eq 0 ]; then
+        echo "install.sh: --agents requires a value (all, <name>, or <name1,name2>)" >&2
+        exit 1
+      fi
+      AGENTS_MODE="$1"
       ;;
     --help|-h)
       print_usage
@@ -203,6 +213,93 @@ write_welcome_name() {
   } >"$target"
 }
 
+# ---------------------------------------------------------------------------
+# Agents / Skills system
+# ---------------------------------------------------------------------------
+
+list_agents() {
+  local agents_dir="$1"
+  if [ ! -d "$agents_dir" ]; then
+    return
+  fi
+  info "Available skills in agents/:"
+  local found=0
+  for skill_dir in "$agents_dir"/*; do
+    [ -d "$skill_dir" ] || continue
+    local skill_name
+    skill_name=$(basename "$skill_dir")
+    [ "$skill_name" = ".git" ] && continue
+    local desc=""
+    if [ -f "$skill_dir/description.md" ]; then
+      desc=$(head -n 1 "$skill_dir/description.md" | tr -d '\r')
+    fi
+    if [ -n "$desc" ]; then
+      info "  $skill_name: $desc"
+    else
+      info "  $skill_name"
+    fi
+    found=$((found + 1))
+  done
+  if [ "$found" -eq 0 ]; then
+    info "  (none — agents/ is empty)"
+  fi
+}
+
+install_agent() {
+  local skill_name="$1"
+  local agents_dir="$SOURCE_DIR/agents"
+  local skill_dir="$agents_dir/$skill_name"
+  if [ ! -d "$skill_dir" ]; then
+    info "Skipping unknown skill: $skill_name"
+    return
+  fi
+  if [ ! -f "$skill_dir/install.fish" ]; then
+    info "Skipping $skill_name: no install.fish"
+    return
+  fi
+  info "Installing skill: $skill_name"
+  if is_dry_run; then
+    echo "[dry-run] fish -c 'source $skill_dir/install.fish'"
+  else
+    fish -c "source '$skill_dir/install.fish'" 2>&1
+  fi
+}
+
+install_agents() {
+  if [ -z "$AGENTS_MODE" ]; then
+    return
+  fi
+  local agents_dir="$SOURCE_DIR/agents"
+  if [ ! -d "$agents_dir" ]; then
+    info "agents/ directory not found in source — skipping skills"
+    return
+  fi
+  echo ""
+  info "Skills selection"
+  list_agents "$agents_dir"
+  echo ""
+
+  case "$AGENTS_MODE" in
+    all)
+      info "Installing all skills..."
+      for skill_dir in "$agents_dir"/*; do
+        [ -d "$skill_dir" ] || continue
+        install_agent "$(basename "$skill_dir")"
+      done
+      ;;
+    *)
+      info "Installing selected skills: $AGENTS_MODE"
+      local IFS=','
+      for skill_name in $AGENTS_MODE; do
+        skill_name=$(echo "$skill_name" | tr -d '[:space:]')
+        [ -z "$skill_name" ] && continue
+        install_agent "$skill_name"
+      done
+      ;;
+  esac
+  echo ""
+}
+
 SOURCE_DIR=$(resolve_source_dir)
 CONFIG_HOME=${XDG_CONFIG_HOME:-"$HOME/.config"}
 
@@ -242,5 +339,7 @@ else
 fi
 
 install_file "$CONFIG_HOME/starship/starship.toml" "$CONFIG_HOME/starship.toml"
+
+install_agents
 
 info "Installation complete. Restart Fish or run: exec fish"
