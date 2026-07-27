@@ -3,7 +3,7 @@
 # Invoked from ~/.config/fish/conf.d/zz-fastfetch.fish after Fastfetch.
 # Individual tools can be toggled via: dot-files --dev-tools toggle <tool>
 
-# Global so the function below can see it (Fish functions do not inherit script locals).
+# Global so the functions below can see it (Fish functions do not inherit script locals).
 set -g __dt_config_file "$HOME/.config/starship/dev-tools.toml"
 
 # A tool is enabled unless dev-tools.toml explicitly sets `<tool> = false`.
@@ -16,22 +16,6 @@ function __dt_enabled
         return 1
     end
     return 0
-end
-
-function __command_version
-    set -l command_name $argv[1]
-    set -l version_command $argv[2]
-    if not type -q "$command_name"
-        return
-    end
-    # Use bash -c rather than eval to reduce shell-injection risk if the command
-    # string is ever derived from untrusted input.
-    set -l value (bash -c "$version_command" 2>/dev/null | string collect)
-    if test -n "$value"
-        echo "$value"
-    else
-        echo "available"
-    end
 end
 
 function __pad_label
@@ -124,92 +108,190 @@ function __print_section
     end
 end
 
-set -l muted (set_color brblack)
-set -l title (set_color magenta)
-set -l runtime_color (set_color blue)
-set -l package_color (set_color cyan)
-set -l python_color (set_color yellow)
-set -l system_color (set_color green)
-set -l infra_color (set_color brblue)
-set -l normal (set_color normal)
+# Render the Dev Tools block. Extracted so __dt_reload can re-render without
+# re-sourcing the entire file (which would try to auto-render again).
+function __dt_render
+    set -l muted (set_color brblack)
+    set -l title (set_color magenta)
+    set -l runtime_color (set_color blue)
+    set -l package_color (set_color cyan)
+    set -l python_color (set_color yellow)
+    set -l system_color (set_color green)
+    set -l infra_color (set_color brblue)
+    set -l normal (set_color normal)
 
-# Build version lines based on enabled tools
-set -l runtime_lines
-set -l package_lines
-set -l python_lines
-set -l system_lines
-set -l infra_lines
+    # Build version lines based on enabled tools. Each tool is a direct Fish
+    # pipeline — the tool's own --version piped through Fish builtins.
+    # No eval, no bash -c.
+    set -l runtime_lines
+    set -l package_lines
+    set -l python_lines
+    set -l system_lines
+    set -l infra_lines
 
-if __dt_enabled nodejs
-    set -a runtime_lines (__tool_line "" "nodejs" (__command_version node 'node --version'))
-end
-if __dt_enabled deno
-    set -a runtime_lines (__tool_line "" "deno" (__command_version deno 'deno --version | head -n 1 | command sed -E "s/^deno ([^ ]+).*/v\\1/"'))
-end
-if __dt_enabled bun
-    set -a runtime_lines (__tool_line "" "bun" (__command_version bun 'bun --version | string replace -r "^" "v"'))
-end
-if __dt_enabled go
-    set -a runtime_lines (__tool_line "" "go" (__command_version go 'go version | command sed -E "s/.*go([0-9.]+).*/v\\1/"'))
-end
-if __dt_enabled rustc
-    set -a runtime_lines (__tool_line "" "rustc" (__command_version rustc 'rustc --version | command sed -E "s/rustc ([0-9.]+).*/v\\1/"'))
-end
-if __dt_enabled java
-    set -a runtime_lines (__tool_line "" "java" (__command_version java 'java --version | head -n 1 | command sed -E "s/^[^0-9]*([0-9][^ ]*).*/v\\1/"'))
+    if __dt_enabled nodejs
+        if type -q node
+            set -a runtime_lines (__tool_line "" "nodejs" \
+                (node --version 2>/dev/null | string replace '^' 'v' | string collect))
+        end
+    end
+    if __dt_enabled deno
+        if type -q deno
+            set -a runtime_lines (__tool_line "" "deno" \
+                (deno --version 2>/dev/null | string replace -r '^deno ([^ ]+).*' 'v\1' | string collect))
+        end
+    end
+    if __dt_enabled bun
+        if type -q bun
+            set -a runtime_lines (__tool_line "" "bun" \
+                (bun --version 2>/dev/null | string replace '^' 'v' | string collect))
+        end
+    end
+    if __dt_enabled go
+        if type -q go
+            set -a runtime_lines (__tool_line "" "go" \
+                (go version 2>/dev/null | string replace -r '.*go([0-9.]+).*' 'v\1' | string collect))
+        end
+    end
+    if __dt_enabled rustc
+        if type -q rustc
+            set -a runtime_lines (__tool_line "" "rustc" \
+                (rustc --version 2>/dev/null | string replace -r 'rustc ([0-9.]+).*' 'v\1' | string collect))
+        end
+    end
+    if __dt_enabled java
+        if type -q java
+            set -a runtime_lines (__tool_line "" "java" \
+                (java --version 2>/dev/null | string replace -r '^[^0-9]*([0-9][^ ]*).*' 'v\1' | string collect))
+        end
+    end
+
+    if __dt_enabled npm
+        if type -q npm
+            set -a package_lines (__tool_line "" "npm" \
+                (npm --version 2>/dev/null | string replace '^' 'v' | string collect))
+        end
+    end
+    if __dt_enabled pnpm
+        if type -q pnpm
+            set -a package_lines (__tool_line "" "pnpm" \
+                (pnpm --version 2>/dev/null | string replace '^' 'v' | string collect))
+        end
+    end
+    if __dt_enabled yarn
+        if type -q yarn
+            set -a package_lines (__tool_line "" "yarn" \
+                (yarn --version 2>/dev/null | string replace '^' 'v' | string collect))
+        end
+    end
+    if __dt_enabled cargo
+        if type -q cargo
+            set -a package_lines (__tool_line "" "cargo" \
+                (cargo --version 2>/dev/null | string replace -r 'cargo ([0-9.]+).*' 'v\1' | string collect))
+        end
+    end
+    if __dt_enabled pipx
+        if type -q pipx
+            set -a package_lines (__tool_line "󰆦" "pipx" \
+                (pipx --version 2>/dev/null | string replace '^' 'v' | string collect))
+        end
+    end
+    if __dt_enabled uv
+        if type -q uv
+            set -a package_lines (__tool_line "󰔛" "uv" \
+                (uv --version 2>/dev/null | string replace -r '^uv ([^ ]+).*' 'v\1' | string collect))
+        end
+    end
+
+    if __dt_enabled python
+        set -a python_lines (__python_lines)
+    end
+
+    if __dt_enabled git
+        if type -q git
+            set -a system_lines (__tool_line "" "git" \
+                (git --version 2>/dev/null | string replace 'git version ' 'v' | string collect))
+        end
+    end
+    if __dt_enabled gh
+        if type -q gh
+            set -a system_lines (__tool_line "" "gh" \
+                (gh --version 2>/dev/null | string replace -r 'gh version ([0-9.]+).*' 'v\1' | string collect))
+        end
+    end
+
+    if __dt_enabled docker
+        if type -q docker
+            set -a infra_lines (__tool_line "" "docker" \
+                (docker --version 2>/dev/null | string replace -r 'Docker version ([^,]+).*' 'v\1' | string collect))
+        end
+    end
+    if __dt_enabled compose
+        if type -q docker
+            set -a infra_lines (__tool_line "" "compose" \
+                (docker compose version 2>/dev/null | string replace -r '.*v?([0-9.]+).*' 'v\1' | string collect))
+        end
+    end
+    if __dt_enabled kubectl
+        if type -q kubectl
+            set -a infra_lines (__tool_line "󱃾" "kubectl" \
+                (kubectl version --client=true 2>/dev/null | string replace -r '.*v([0-9.]+).*' 'v\1' | string collect))
+        end
+    end
+
+    set -l total_lines (math (count $runtime_lines) + (count $package_lines) + (count $python_lines) + (count $system_lines) + (count $infra_lines))
+
+    if test $total_lines -eq 0
+        return 0
+    end
+
+    echo "$muted────────────────────────────────────────────────────────────$normal"
+    echo "$title"Dev Tools"$normal"
+    echo "$muted────────────────────────────────────────────────────────────$normal"
+    __print_section "$runtime_color" "Runtimes" $runtime_lines
+    __print_section "$package_color" "Package managers" $package_lines
+    __print_section "$python_color" "Python" $python_lines
+    __print_section "$system_color" "System tools" $system_lines
+    __print_section "$infra_color" "Infrastructure" $infra_lines
 end
 
-if __dt_enabled npm
-    set -a package_lines (__tool_line "" "npm" (__command_version npm 'npm --version | string replace -r "^" "v"'))
-end
-if __dt_enabled pnpm
-    set -a package_lines (__tool_line "" "pnpm" (__command_version pnpm 'pnpm --version | string replace -r "^" "v"'))
-end
-if __dt_enabled yarn
-    set -a package_lines (__tool_line "" "yarn" (__command_version yarn 'yarn --version | string replace -r "^" "v"'))
-end
-if __dt_enabled cargo
-    set -a package_lines (__tool_line "" "cargo" (__command_version cargo 'cargo --version | command sed -E "s/cargo ([0-9.]+).*/v\\1/"'))
-end
-if __dt_enabled pipx
-    set -a package_lines (__tool_line "󰆦" "pipx" (__command_version pipx 'pipx --version | string replace -r "^" "v"'))
-end
-if __dt_enabled uv
-    set -a package_lines (__tool_line "󰔛" "uv" (__command_version uv 'uv --version | command sed -E "s/^uv ([^ ]+).*/v\\1/"'))
+# Re-render the Dev Tools block from the current session. Tracks the
+# dev-tools.toml mtime in a universal variable so it only re-renders when
+# the file actually changed. Designed to be called from
+# `dot-files --dev-tools reload` after sourcing this file.
+function __dt_reload
+    set -l devtools_file "$HOME/.config/starship/dev-tools.toml"
+    if not test -f "$devtools_file"
+        echo "dot-files: dev-tools config not found, run: dot-files --dev-tools init" >&2
+        return 1
+    end
+
+    # Track config file mtime; only re-render when the file changed.
+    set -q __dt_config_file_mtime; or set -U __dt_config_file_mtime 0
+    set -l current_mtime
+    if command -v stat >/dev/null 2>&1
+        stat -c '%Y' "$devtools_file" 2>/dev/null
+    end
+
+    if test -z "$current_mtime"
+        # OS without GNU stat — just render.
+        __dt_render
+        echo "Dev Tools reloaded."
+        return 0
+    end
+
+    if test "$current_mtime" = "$__dt_config_file_mtime"
+        echo "Dev Tools reloaded (no changes detected)."
+        return 0
+    end
+
+    __dt_render
+    set -U __dt_config_file_mtime "$current_mtime"
+    echo "Dev Tools reloaded."
 end
 
-if __dt_enabled python
-    set -a python_lines (__python_lines)
+# Auto-render when this script is invoked directly (e.g., from zz-fastfetch.fish).
+# Skip when sourced for function definitions (reload helper passes this flag).
+if not set -q __dt_force_no_auto_render
+    __dt_render
 end
-
-if __dt_enabled git
-    set -a system_lines (__tool_line "" "git" (__command_version git 'git --version | string replace "git version " "v"'))
-end
-if __dt_enabled gh
-    set -a system_lines (__tool_line "" "gh" (__command_version gh 'gh --version | head -n 1 | command sed -E "s/gh version ([0-9.]+).*/v\\1/"'))
-end
-
-if __dt_enabled docker
-    set -a infra_lines (__tool_line "" "docker" (__command_version docker 'docker --version | command sed -E "s/Docker version ([^,]+).*/v\\1/"'))
-end
-if __dt_enabled compose
-    set -a infra_lines (__tool_line "" "compose" (__command_version docker 'docker compose version 2>/dev/null | command sed -E "s/.*v?([0-9.]+).*/v\\1/"'))
-end
-if __dt_enabled kubectl
-    set -a infra_lines (__tool_line "󱃾" "kubectl" (__command_version kubectl 'kubectl version --client=true 2>/dev/null | head -n 1 | command sed -E "s/.*v([0-9.]+).*/v\\1/"'))
-end
-
-set -l total_lines (math (count $runtime_lines) + (count $package_lines) + (count $python_lines) + (count $system_lines) + (count $infra_lines))
-
-if test $total_lines -eq 0
-    exit 0
-end
-
-echo "$muted────────────────────────────────────────────────────────────$normal"
-echo "$title"Dev Tools"$normal"
-echo "$muted────────────────────────────────────────────────────────────$normal"
-__print_section "$runtime_color" "Runtimes" $runtime_lines
-__print_section "$package_color" "Package managers" $package_lines
-__print_section "$python_color" "Python" $python_lines
-__print_section "$system_color" "System tools" $system_lines
-__print_section "$infra_color" "Infrastructure" $infra_lines
