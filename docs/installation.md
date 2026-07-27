@@ -89,5 +89,7 @@ Generated output:
 Regenerate after module or preference changes:
 
 ```fish
-starship-rebuild
+dot-files --edit style   # or --edit color, --edit modules
+# or
+fish ~/.config/starship/build.fish
 ```

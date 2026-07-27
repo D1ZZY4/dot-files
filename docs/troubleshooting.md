@@ -16,13 +16,11 @@ cat ~/.config/starship/color
 Apply:
 
 ```fish
-dot-files --style 5
+dot-files --edit style
 # or pick a color palette:
 dot-files --color moonlight
 dot-files --color catppuccin-macchiato
 dot-files --color catppuccin-mocha
-# then rebuild:
-starship-rebuild
 ```
 
 ## Fastfetch welcome still shows the wrong name

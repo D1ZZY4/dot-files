@@ -61,7 +61,7 @@ login shell before installing.
 | Other | ❌ |
 
 > Starship and Fastfetch configs are shell-agnostic once installed, but only Fish helpers
-> (`starship init fish`, `dot-files`, `starship-rebuild`, …) are provided here.
+> (`starship init fish`, `dot-files`, `dot-files --edit`, …) are provided here.
 
 ## Requirements
 
@@ -155,7 +155,7 @@ see active settings, preference paths, live style/color previews, and the welcom
 </div>
 
 ```fish
-dot-files                      # show paths, active settings, and previews
+dot-files                         # show paths, active settings, and previews
 
 # Prompt appearance
 dot-files --style 5
@@ -165,7 +165,14 @@ dot-files --color catppuccin-mocha
 
 # Welcome name
 dot-files --username "Your Name"
-dot-files --username reset     # back to the system username
+dot-files --username reset       # back to the system username
+
+# Edit a preference file and apply changes after the editor closes
+dot-files --edit style
+dot-files --edit color
+dot-files --edit modules
+dot-files --edit username
+dot-files --edit dev-tools
 
 # Starship modules (core is always on)
 dot-files --list-modules
@@ -175,6 +182,11 @@ dot-files --disable-module git
 # Fastfetch Dev Tools block
 dot-files --dev-tools init
 dot-files --dev-tools toggle docker
+dot-files --dev-tools reload      # re-render Dev Tools without exec fish
+
+# Diagnostics
+dot-files --doctor               # run sanity checks, print one line per check
+dot-files --status               # report dotfiles git state vs upstream
 ```
 
 ## Preference files
@@ -183,11 +195,11 @@ Everyday options live in plain-text files — lines starting with `#` are commen
 
 | File | Purpose |
 | :--- | :--- |
-| `~/.config/starship/style` | Prompt separator `1`–`5` |
-| `~/.config/starship/color` | Palette: `moonlight` or `catppuccin-macchiato` or `catppuccin-mocha` |
-| `~/.config/starship/username` | Fastfetch welcome name |
-| `~/.config/starship/modules.conf` | Enabled Starship modules (created on first toggle) |
-| `~/.config/starship/dev-tools.toml` | Dev Tools visibility (created by `--dev-tools init`) |
+| `~/.config/starship/style` | Prompt separator `1`–`5` · rebuilt by `dot-files --edit style` |
+| `~/.config/starship/color` | Palette: `moonlight` or `catppuccin-macchiato` or `catppuccin-mocha` · rebuilt by `dot-files --edit color` |
+| `~/.config/starship/username` | Fastfetch welcome name · applied by `dot-files --edit username` |
+| `~/.config/starship/modules.conf` | Enabled Starship modules (created on first toggle) · rebuilt by `dot-files --edit modules` |
+| `~/.config/starship/dev-tools.toml` | Dev Tools visibility (created by `--dev-tools init`) · reload with `dot-files --dev-tools reload` |
 
 Leave `username` empty (comments only) to use your **system username**
 (`Welcome, {user-name}!`). Add a single line such as `Alex` for a custom title, then run
@@ -230,7 +242,7 @@ Themes live in `config/starship/colors/`, each with its own Starship palette
 the modular source files by:
 
 ```fish
-starship-rebuild
+dot-files --edit style   # rebuild and preview after editing modules or style
 # or
 fish ~/.config/starship/build.fish
 ```
@@ -244,6 +256,12 @@ fish ~/.config/starship/build.fish
 ├── config/
 │   ├── fastfetch/          # Fastfetch config + Dev Tools detection
 │   ├── fish/               # conf.d, functions, completions
+│   │   └── conf.d/
+│   │       ├── 10-startup-message.fish
+│   │       ├── 15-paths.fish       # fish_user_paths for persistent PATH
+│   │       ├── 20-starship.fish
+│   │       ├── 30-abbreviations.fish
+│   │       └── zz-fastfetch.fish
 │   └── starship/
 │       ├── colors/         # color themes
 │       ├── modules/        # modular prompt segments

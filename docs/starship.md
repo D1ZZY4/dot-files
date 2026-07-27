@@ -14,10 +14,12 @@ config/starship/starship.toml
 
 ## Build process
 
-Run:
+Rebuild the prompt:
 
 ```fish
-starship-rebuild
+dot-files --edit style      # or --edit color, --edit modules
+# or
+fish ~/.config/starship/build.fish
 ```
 
 The build script:
@@ -52,13 +54,13 @@ To add a new module, edit `config/starship/build.fish` and insert the filename i
 | `~/.config/starship/modules.conf` | Enabled modules (one per line; `#` disables) |
 | `~/.config/starship/username` | Fastfetch welcome name (empty = system user) |
 
-Lines starting with `#` are ignored. After editing `style`, `color`, or `modules.conf`, run `starship-rebuild`. After `username`, run `fastfetch-apply-welcome`.
+Lines starting with `#` are ignored. After editing `style`, `color`, or `modules.conf`, run `dot-files --edit style` (or `--edit color` / `--edit modules`). After `username`, run `fastfetch-apply-welcome`.
 
 ## Adding a module
 
 1. Create the source file under `config/starship/modules/`, for example `config/starship/modules/cloud.toml`.
 2. Edit `config/starship/build.fish` and insert `cloud` into the `module_order` list at the correct position. To make the module toggleable, also add its name to `__dotfiles_all_modules` in `config/fish/functions/dot-files.fish`.
-3. Run `starship-rebuild`.
+3. Run `dot-files --edit modules` to regenerate `starship.toml`.
 
 ## Separator placeholders
 
