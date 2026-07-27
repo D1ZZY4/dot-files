@@ -16,7 +16,7 @@ Fish loads `conf.d` automatically. File order matters; `zz-*` runs late on purpo
 | `10-startup-message.fish` | Disables Fish greeting (Fastfetch handles startup) |
 | `15-paths.fish` | Persistent `fish_user_paths` for tool-managed PATH entries |
 | `20-starship.fish` | `starship init fish` |
-| `30-abbreviations.fish` | Common abbreviations (`g`, `cd`, `ls`, `docker`, `gh`, …) |
+| `30-abbreviations.fish` | Common abbreviations (`g`, `cd`, `ls`, `docker`, `gh`, `dotf`, …) |
 | `zz-fastfetch.fish` | Fastfetch + Dev Tools (after version managers load) |
 
 ## Functions
@@ -110,3 +110,21 @@ The config lives in `~/.config/starship/dev-tools.toml`. Set any `<tool> = false
 
 `dot-files --dev-tools reload` re-reads `dev-tools.toml` and re-renders the Dev
 Tools block in the current terminal without restarting the shell.
+
+## Abbreviations
+
+`30-abbreviations.fish` defines shortcuts that expand on SPACE or ENTER in
+interactive sessions. The full list includes `g` (git), `ls` (eza/lsd), `cat`
+(bat), `find` (fd), `grep` (rg), `cd` (zoxide), `k` (kubectl), `d` (docker),
+`gh*` (GitHub CLI), and `dotf` (dot-files).
+
+```fish
+dotf --style 5    # expands to: dot-files --style 5
+```
+
+## nvm wrapper
+
+`functions/nvm.fish` lazy-loads Node Version Manager on first call. Because
+nvm is a bash-only script, the wrapper delegates to `bash -lc` when nvm has
+not already been loaded into the session. The `$NVM_DIR` environment variable
+is respected if set.
