@@ -21,12 +21,14 @@ end
 function __command_version
     set -l command_name $argv[1]
     set -l version_command $argv[2]
-    if not type -q $command_name
+    if not type -q "$command_name"
         return
     end
-    set -l value (eval $version_command 2>/dev/null | string collect)
+    # Use bash -c rather than eval to reduce shell-injection risk if the command
+    # string is ever derived from untrusted input.
+    set -l value (bash -c "$version_command" 2>/dev/null | string collect)
     if test -n "$value"
-        echo $value
+        echo "$value"
     else
         echo "available"
     end
@@ -49,15 +51,15 @@ function __tool_line
     set -l tool_version $argv[3]
     if test -n "$tool_version"
         set -l padded_label (__pad_label "$label" 10)
-        echo "  $icon $padded_label $tool_version"
+        echo "  $icon  $padded_label  $tool_version"
     end
 end
 
 function __python_version_from_binary
     if test -x "$argv[1]"
-        set -l py_version_value ($argv[1] --version 2>/dev/null | string replace 'Python ' 'v')
+        set -l py_version_value (command $argv[1] --version 2>/dev/null | string replace 'Python ' 'v')
         if test -n "$py_version_value"
-            echo $py_version_value
+            echo "$py_version_value"
         end
     end
 end

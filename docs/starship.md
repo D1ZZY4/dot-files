@@ -41,7 +41,7 @@ package.toml
 file-icons.toml
 ```
 
-To add a new module, edit `config/starship/build.fish` and insert the filename into the `default_order` list at the correct position.
+To add a new module, edit `config/starship/build.fish` and insert the filename into the `module_order` list at the correct position.
 
 ## Preference files
 
@@ -57,7 +57,7 @@ Lines starting with `#` are ignored. After editing `style`, `color`, or `modules
 ## Adding a module
 
 1. Create the source file under `config/starship/modules/`, for example `config/starship/modules/cloud.toml`.
-2. Edit `config/starship/build.fish` and insert `cloud` into the `default_order` list at the correct position. To make the module toggleable, also add its name to `__dotfiles_all_modules` in `config/fish/functions/dot-files.fish`.
+2. Edit `config/starship/build.fish` and insert `cloud` into the `module_order` list at the correct position. To make the module toggleable, also add its name to `__dotfiles_all_modules` in `config/fish/functions/dot-files.fish`.
 3. Run `starship-rebuild`.
 
 ## Separator placeholders

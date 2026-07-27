@@ -3,10 +3,10 @@
 
 function ls --description 'List files with Nerd Font icons'
     if type -q eza
-        command eza --icons=always --group-directories-first $argv
+        command eza --icons=always --group-directories-first -- $argv
         return $status
     else if type -q lsd
-        command lsd --icon always --group-dirs first $argv
+        command lsd --icon always --group-dirs first -- $argv
         return $status
     end
 
@@ -26,7 +26,7 @@ function ls --description 'List files with Nerd Font icons'
                 set long 1
                 set show_all 1
             case '-*'
-                command ls --color=auto $argv
+                command ls --color=auto -- $argv
                 return $status
             case '*'
                 set -a paths $arg
@@ -266,5 +266,5 @@ function __ls_icon -a name full
         end
     end
 
-    echo $icon
+    echo "$icon"
 end

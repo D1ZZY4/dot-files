@@ -21,15 +21,18 @@ function fastfetch-apply-welcome --description 'Apply starship/username to Fastf
     set -l format_line '"format": "Welcome, {user-name}!"'
     set -l display_name (dotfiles-read-setting "$username_file")
     if test -n "$display_name"
-        set -l safe_name (string replace -a '"' '\"' -- "$display_name")
-        set format_line '"format": "Welcome, '$safe_name'!"'
+        set -l safe_name (string escape --style=json -- "$display_name")
+        set format_line '"format": "Welcome, '"$safe_name"'!"'
     end
 
     set -l tmp "$fastfetch_config.tmp"
-    if not string replace -r '"format": "Welcome, [^"]*!"' $format_line < "$fastfetch_config" > "$tmp"
-        echo "fastfetch-apply-welcome: could not update title format in $fastfetch_config" >&2
+    # Fish's string replace -r always exits 0 — verify the pattern exists first.
+    if grep -q '"format": "Welcome, [^"]*!"' "$fastfetch_config"
+        string replace -r '"format": "Welcome, [^"]*!"' $format_line \
+            < "$fastfetch_config" > "$tmp"
+        mv -- "$tmp" "$fastfetch_config"
+    else
+        echo "fastfetch-apply-welcome: 'format' line not found in $fastfetch_config" >&2
         return 1
     end
-
-    mv "$tmp" "$fastfetch_config"
 end

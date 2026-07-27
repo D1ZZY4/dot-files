@@ -6,11 +6,11 @@ function dotfiles-read-modules --argument-names file_path
         return 1
     end
 
-    for line in (cat "$file_path")
+    while read -l line
         set -l trimmed (string trim -- $line)
-        if test -z "$trimmed"; or string match -qr '^#' -- "$trimmed"
+        if test -z "$trimmed"; or string match -qr '^\s*#' -- "$trimmed"
             continue
         end
         echo "$trimmed"
-    end
+    end < "$file_path"
 end

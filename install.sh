@@ -9,6 +9,8 @@ DOTFILES_REPO_URL=${DOTFILES_REPO_URL:-https://github.com/D1ZZY4/dot-files.git}
 INSTALL_MODE=${INSTALL_MODE:-symlink}
 BACKUP_DIR=${BACKUP_DIR:-"$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"}
 DRY_RUN=${DRY_RUN:-0}
+# Accept common truthy values: 1, true, yes, on
+is_dry_run() { case "${DRY_RUN}" in 1|true|yes|on) return 0 ;; *) return 1 ;; esac }
 DOTFILES_WELCOME_NAME=${DOTFILES_WELCOME_NAME:-}
 
 print_usage() {
@@ -62,7 +64,7 @@ while [ "$#" -gt 0 ]; do
         echo "install.sh: --welcome requires a name" >&2
         exit 1
       fi
-      DOTFILES_WELCOME_NAME=$1
+      DOTFILES_WELCOME_NAME="$1"
       ;;
     --help|-h)
       print_usage
@@ -78,7 +80,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 run() {
-  if [ "$DRY_RUN" = 1 ]; then
+  if is_dry_run; then
     echo "[dry-run] $*"
   else
     "$@"
@@ -95,16 +97,26 @@ resolve_source_dir() {
     return
   fi
 
-  local script_dir
-  script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-  if [ -d "$script_dir/config" ]; then
-    echo "$script_dir"
-    return
+  # $0 is unreliable when piped (e.g. curl | sh). Skip directly to the clone
+  # path if stdin is not a regular file (script is being read from a pipe).
+  if [ ! -f /dev/stdin ] && [ -n "$DOTFILES_REPO_URL" ]; then
+    :
+  else
+    local script_dir
+    script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+    if [ -d "$script_dir/config" ]; then
+      echo "$script_dir"
+      return
+    fi
   fi
 
   if [ -n "$DOTFILES_REPO_URL" ]; then
     local clone_dir="$HOME/.local/share/dotfiles"
-    run rm -rf "$clone_dir"
+    info "Cloning from $DOTFILES_REPO_URL to $clone_dir"
+    if [ -d "$clone_dir" ]; then
+      info "Resetting existing clone at $clone_dir"
+      run rm -rf "$clone_dir"
+    fi
     run mkdir -p "$(dirname "$clone_dir")"
     if ! run git clone --depth 1 "$DOTFILES_REPO_URL" "$clone_dir"; then
       echo "Failed to clone repository from $DOTFILES_REPO_URL" >&2
@@ -127,7 +139,7 @@ backup_path() {
     local backup_target="$BACKUP_DIR/$relative"
     info "Backing up $target -> $backup_target"
     run mkdir -p "$(dirname "$backup_target")"
-    run mv "$target" "$backup_target"
+    run mv -- "$target" "$backup_target"
   fi
 }
 
@@ -160,10 +172,10 @@ install_tree_files() {
     return
   fi
 
-  find "$source_dir" -type f | while IFS= read -r source_file; do
+  while IFS= read -r source_file; do
     local relative=${source_file#"$source_dir"/}
     install_file "$source_file" "$target_dir/$relative"
-  done
+  done < <(find "$source_dir" -type f)
 }
 
 write_welcome_name() {
@@ -175,7 +187,7 @@ write_welcome_name() {
   fi
 
   info "Setting Fastfetch welcome name: $name"
-  if [ "$DRY_RUN" = 1 ]; then
+  if is_dry_run; then
     echo "[dry-run] write welcome name to $target"
     return 0
   fi
@@ -211,7 +223,7 @@ fi
 if command -v fish >/dev/null 2>&1; then
   if [ -n "$DOTFILES_WELCOME_NAME" ]; then
     info "Applying Fastfetch welcome title"
-    if [ "$DRY_RUN" = 1 ]; then
+    if is_dry_run; then
       echo "[dry-run] fish -c 'fastfetch-apply-welcome'"
     else
       fish -c 'fastfetch-apply-welcome'
@@ -219,7 +231,7 @@ if command -v fish >/dev/null 2>&1; then
   fi
 
   info "Generating Starship config"
-  if [ "$DRY_RUN" = 1 ]; then
+  if is_dry_run; then
     echo "[dry-run] fish $CONFIG_HOME/starship/build.fish"
   else
     fish "$CONFIG_HOME/starship/build.fish"

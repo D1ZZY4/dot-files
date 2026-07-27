@@ -15,6 +15,7 @@ end
 function __dotfiles_regex_escape
     set -l s $argv[1]
     string replace -a '\\' '\\\\' -- "$s" \
+        | string replace -a '/' '\\/' \
         | string replace -a '.' '\\.' \
         | string replace -a '^' '\\^' \
         | string replace -a '$' '\\$' \
@@ -69,18 +70,21 @@ function __dotfiles_write_style_file --argument-names style path
     printf '%s\n' \
         '# Starship powerline separator style (1-5).' \
         '# 1: block  2: gradient  3: angled  4: slant  5: round (default)' \
-        $style > $path
+        "$style" > "$path"
 end
 
 function __dotfiles_write_color_file --argument-names color path
     printf '%s\n' \
         '# Starship color palette name. Must match colors/<name>.toml' \
         '# Options: moonlight | catppuccin-macchiato | catppuccin-mocha' \
-        $color > $path
+        "$color" > "$path"
 end
 
 function __dotfiles_rebuild_quiet
-    fish "$HOME/.config/starship/build.fish" 2>&1 >/dev/null
+    if not type -q starship
+        return 0
+    end
+    fish "$HOME/.config/starship/build.fish" >/dev/null 2>&1
 end
 
 function __dotfiles_starship_prompt_block
@@ -241,7 +245,8 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
             end
 
             starship-rebuild
-            echo "Starship color set to "(dotfiles-read-setting "$color_file")" ($color_file)"
+            set -l active_color (dotfiles-read-setting "$color_file")
+            echo "Starship color set to $active_color ($color_file)"
             echo ""
             __dotfiles_starship_prompt_block
 
@@ -383,7 +388,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                     return 1
                 end
 
-                set -l current_val (grep -F "^$tool_name =" "$devtools_file" 2>/dev/null | tail -n 1 | string trim | string replace -r '.*=\s*' '' | string trim -c ',"')
+                set -l current_val (grep "^$tool_name =" "$devtools_file" 2>/dev/null | tail -n 1 | string trim | string replace -r '.*=\s*' '' | string trim -c ',"')
                 if test -z "$current_val"
                     echo "dot-files: unknown tool '$tool_name'" >&2
                     echo "Tools: nodejs deno bun go rustc java npm pnpm yarn cargo pipx uv python git gh docker compose kubectl" >&2
