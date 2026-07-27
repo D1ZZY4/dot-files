@@ -6,6 +6,7 @@ config/starship/starship.toml
 .cache/
 *.log
 .vscode/
+.claude/
 
 # Backup or temporary files
 *.bak
