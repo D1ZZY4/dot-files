@@ -1,5 +1,6 @@
 # Abbreviations expand on SPACE/ENTER in interactive sessions only.
 # Guarded by type checks so they stay functional even when the target is missing.
+if status --is-interactive
 
 if type -q git
     abbr -a g git
@@ -93,3 +94,4 @@ abbr -a tfp 'terraform plan'
 abbr -a tfa 'terraform apply'
 
 abbr -a dotf 'dot-files'
+end

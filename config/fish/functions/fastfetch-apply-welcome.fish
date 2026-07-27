@@ -14,7 +14,7 @@ function fastfetch-apply-welcome --description 'Apply starship/username to Fastf
     end
 
     if not test -f "$fastfetch_config"
-        echo "fastfetch-apply-welcome: config not found at $fastfetch_config" >&2
+        echo "dot-files: fastfetch config not found at $fastfetch_config" >&2
         return 1
     end
 
@@ -25,14 +25,16 @@ function fastfetch-apply-welcome --description 'Apply starship/username to Fastf
         set format_line '"format": "Welcome, '"$safe_name"'!"'
     end
 
-    set -l tmp "$fastfetch_config.tmp"
+    # mktemp ensures an unpredictable, atomic temp file in a safe directory.
+    set -l tmp (mktemp)
     # Fish's string replace -r always exits 0 — verify the pattern exists first.
     if grep -q '"format": "Welcome, [^"]*!"' "$fastfetch_config"
-        string replace -r '"format": "Welcome, [^"]*!"' $format_line \
+        string replace -r '"format": "Welcome, [^"]*!"' "$format_line" \
             < "$fastfetch_config" > "$tmp"
         mv -- "$tmp" "$fastfetch_config"
     else
-        echo "fastfetch-apply-welcome: 'format' line not found in $fastfetch_config" >&2
+        rm -f "$tmp"
+        echo "dot-files: 'format' line not found in $fastfetch_config" >&2
         return 1
     end
 end

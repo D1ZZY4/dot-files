@@ -14,7 +14,9 @@ end
 # Escape regex metacharacters for safe literal sed matching.
 function __dotfiles_regex_escape
     set -l s $argv[1]
-    string replace -a '\\' '\\\\' -- "$s" \
+    # Escape each BRE metacharacter. Replacement strings use double-backslash
+    # because string replace -a interprets \X as a special escape; \\ → \ literal.
+    string replace -a '\\' '\\' -- "$s" \
         | string replace -a '/' '\\/' \
         | string replace -a '.' '\\.' \
         | string replace -a '^' '\\^' \
@@ -28,7 +30,8 @@ function __dotfiles_regex_escape
         | string replace -a ')' '\\)' \
         | string replace -a '{' '\\{' \
         | string replace -a '}' '\\}' \
-        | string replace -a '|' '\\|'
+        | string replace -a '|' '\\|' \
+        | string replace -a '&' '\\&'
 end
 
 # Create modules.conf with every module enabled (file-icons disabled by default)
@@ -84,7 +87,7 @@ function __dotfiles_rebuild_quiet
     if not type -q starship
         return 0
     end
-    fish "$HOME/.config/starship/build.fish" >/dev/null 2>&1
+    fish "$build_fish" >/dev/null 2>&1
 end
 
 function __dotfiles_starship_prompt_block
@@ -127,7 +130,7 @@ function __dotfiles_edit_file --argument-names file_path
     echo "dot-files: editing $file_path"
     if set -q EDITOR
         if test -n "$EDITOR"
-            eval "$EDITOR" "$file_path"
+            "$EDITOR" "$file_path"
         else
             echo "dot-files: EDITOR is set but empty" >&2
             return 1
@@ -164,12 +167,15 @@ end
 
 # Report the git status of the installed dotfiles repo.
 function __dotfiles_status
+    # set does not propagate the exit status of command substitution, so check
+    # $repo directly instead of $status.
     set -l repo (__dotfiles_repo_path)
-    if test $status -ne 0
+    if test -z "$repo"
         echo "Installed via copy or unknown source. Cannot determine status."
         return 0
     end
 
+    set -l dirty 0
     set -l branch_info (git -C "$repo" symbolic-ref --short HEAD 2>/dev/null; or echo "detached")
     echo "Repo: $repo"
     echo "Branch: $branch_info"
@@ -181,6 +187,7 @@ function __dotfiles_status
         for f in $modified
             echo "  M $f"
         end
+        set dirty 1
     else
         echo "No modified files."
     end
@@ -192,6 +199,7 @@ function __dotfiles_status
         for f in $untracked
             echo "  ? $f"
         end
+        set dirty 1
     end
 
     # Ahead / behind vs upstream
@@ -199,11 +207,13 @@ function __dotfiles_status
     set -l behind (git -C "$repo" rev-list --count "HEAD..@{upstream}" 2>/dev/null; or echo 0)
     if test "$ahead" -gt 0; or test "$behind" -gt 0
         echo "Ahead $ahead, behind $behind."
+        set dirty 1
     else
         echo "Installed dotfiles are up to date."
     end
 
-    return 0
+    # Exit 1 when dirty or behind so scripts/CI can detect drift.
+    return $dirty
 end
 
 # Canonical dev-tools tool list — single source of truth for init template,
@@ -407,6 +417,7 @@ end
 
 function dot-files --description 'Manage Starship and Fastfetch dotfiles preferences'
     set -l starship_dir "$HOME/.config/starship"
+    set -l build_fish "$starship_dir/build.fish"
     set -l style_file "$starship_dir/style"
     set -l color_file "$starship_dir/color"
     set -l username_file "$starship_dir/username"
@@ -443,7 +454,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
             switch $style
                 case 1 2 3 4 5
                     __dotfiles_write_style_file $style "$style_file"
-                    fish "$HOME/.config/starship/build.fish"
+                    fish "$build_fish"
                     echo "Starship style set to $style ($style_file)"
                     echo ""
                     __dotfiles_starship_prompt_block
@@ -469,7 +480,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                     return 1
             end
 
-            fish "$HOME/.config/starship/build.fish"
+            fish "$build_fish"
             set -l active_color (dotfiles-read-setting "$color_file")
             echo "Starship color set to $active_color ($color_file)"
             echo ""
@@ -485,15 +496,15 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
             if test "$username" = reset -o "$username" = system -o "$username" = default
                 __dotfiles_username_template > "$username_file"
                 fastfetch-apply-welcome
-                echo "Fastfetch welcome uses system username ($username_file cleared)"
+                and echo "dot-files: welcome reset to system username ($username_file)"
                 return 0
             end
 
             __dotfiles_username_template > "$username_file"
             echo "$username" >> "$username_file"
             fastfetch-apply-welcome
-            echo "Fastfetch welcome set to: Welcome, $username!"
-            echo "Saved in $username_file"
+            and echo "Fastfetch welcome set to: Welcome, $username!"
+            and echo "Saved in $username_file"
 
         case --enable-module
             set -l module_name $argv[2]
@@ -504,10 +515,11 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                 echo "dot-files: module '$module_name' is already enabled"
             else
                 set -l escaped (__dotfiles_regex_escape "$module_name")
-                sed -i "s/^# *$escaped\$/$module_name/" "$modules_file"
+                sed -i.bak "s/^# *$escaped\$/$module_name/" "$modules_file"
+                rm -f "$modules_file.bak"
                 echo "dot-files: module '$module_name' enabled"
             end
-            fish "$HOME/.config/starship/build.fish"
+            fish "$build_fish"
             echo ""
             __dotfiles_starship_prompt_block
 
@@ -522,9 +534,10 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
 
             __dotfiles_init_modules_file "$modules_file"
             set -l escaped (__dotfiles_regex_escape "$module_name")
-            sed -i "s/^$escaped\$/# $module_name/" "$modules_file"
+            sed -i.bak "s/^$escaped\$/# $module_name/" "$modules_file"
+            rm -f "$modules_file.bak"
             echo "dot-files: module '$module_name' disabled"
-            fish "$HOME/.config/starship/build.fish"
+            fish "$build_fish"
             echo ""
             __dotfiles_starship_prompt_block
 
@@ -615,7 +628,9 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                     return 1
                 end
 
-                set -l current_val (grep "^$tool_name =" "$devtools_file" 2>/dev/null | tail -n 1 | string trim | string replace -r '.*=\s*' '' | string trim -c ',"')
+                # [[:space:]]* ensures the tool name is followed by =, not another
+                # character like 'x' (e.g., 'npm' does not match 'npmx = true').
+                set -l current_val (grep -E "^$tool_name[[:space:]]*=" "$devtools_file" 2>/dev/null | tail -n 1 | string trim | string replace -r '.*=\s*' '' | string trim -c ',"')
                 if test -z "$current_val"
                     echo "dot-files: unknown tool '$tool_name'" >&2
                     set -l tools_list (string join ' ' (__dotfiles_devtools_list))
@@ -631,7 +646,9 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                 end
 
                 set -l escaped (__dotfiles_regex_escape "$tool_name")
-                sed -i "s/^$escaped\s*=\s*.*/$tool_name = $new_val/" "$devtools_file"
+                # sed -i.bak is portable across GNU and BSD/macOS sed.
+                sed -i.bak "s/^$escaped[[:space:]]*=[[:space:]]*.*/$tool_name = $new_val/" "$devtools_file"
+                rm -f "$devtools_file.bak"
                 echo "dot-files: $tool_name -> $new_val"
                 return 0
             end
@@ -668,13 +685,13 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                         set f "$modules_file"
                     end
                     __dotfiles_edit_file "$f"; or return 1
-                    fish "$HOME/.config/starship/build.fish"
+                    fish "$build_fish"
                     echo ""
                     __dotfiles_starship_prompt_block
                 case username
                     __dotfiles_edit_file "$username_file"; or return 1
                     fastfetch-apply-welcome
-                    echo "dot-files: welcome name updated"
+                    and echo "dot-files: welcome name updated"
                 case dev-tools
                     __dotfiles_edit_file "$devtools_file"; or return 1
                     echo "dot-files: dev-tools updated (changes apply on next startup)"

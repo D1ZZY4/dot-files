@@ -174,10 +174,10 @@ install_tree_files() {
     return
   fi
 
-  while IFS= read -r source_file; do
-    local relative=${source_file#"$source_dir"/}
+  find "$source_dir" -type f | while IFS= read -r source_file; do
+    relative=${source_file#"$source_dir"/}
     install_file "$source_file" "$target_dir/$relative"
-  done < <(find "$source_dir" -type f)
+  done
 }
 
 write_welcome_name() {

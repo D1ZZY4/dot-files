@@ -12,7 +12,7 @@ function __dt_enabled
     if test -z "$tool"
         return 1
     end
-    if test -f "$__dt_config_file"; and grep -q "^$tool\s*=\s*false" "$__dt_config_file" 2>/dev/null
+    if test -f "$__dt_config_file"; and grep -q "^$tool[ 	]*=[ 	]*false" "$__dt_config_file" 2>/dev/null
         return 1
     end
     return 0
@@ -55,18 +55,28 @@ end
 
 function __collect_python_binaries
     set -l seen
+    # Build a list of PATH directories that actually exist to avoid noise.
+    set -l valid_dirs
     for path_dir in (string split : -- $PATH)
-        if test -d "$path_dir"
-            for binary in (command find "$path_dir" -maxdepth 1 -name 'python3.[0-9]*' 2>/dev/null)
-                set -l binary_name (basename "$binary")
-                if not string match -qr '^python3\.[0-9]+$' -- "$binary_name"
-                    continue
-                end
-                if test -x "$binary"; and not contains -- "$binary" $seen
-                    set -a seen "$binary"
-                    echo "$binary"
-                end
-            end
+        test -d "$path_dir"
+        and set -a valid_dirs "$path_dir"
+    end
+
+    # Portable: `find -maxdepth` is GNU-only, so we use find without depth limit
+    # and filter results to only keep files directly inside each PATH directory.
+    for binary in (find $valid_dirs -name 'python3.[0-9]*' -type f 2>/dev/null)
+        set -l bin_dir (dirname "$binary")
+        if not contains -- "$bin_dir" $valid_dirs
+            # File is in a subdirectory of a PATH entry — skip.
+            continue
+        end
+        set -l name (basename "$binary")
+        if not string match -qr '^python3\.[0-9]+$' -- "$name"
+            continue
+        end
+        if test -x "$binary"; and not contains -- "$binary" $seen
+            set -a seen "$binary"
+            echo "$binary"
         end
     end
 end
@@ -80,7 +90,12 @@ function __python_lines
             set -a rows "$minor - $py_version_value"
         end
     end
-    set rows (string join \n $rows | sort -V | uniq)
+    set -l sorted_rows
+    for row in $rows
+        set -a sorted_rows (string replace '^python3\.' '' -- "$row")
+    end
+    set sorted_rows (string join \n $sorted_rows | sort -n | uniq)
+    set rows $sorted_rows
     if test (count $rows) -eq 0
         return
     end
@@ -132,7 +147,7 @@ function __dt_render
     if __dt_enabled nodejs
         if type -q node
             set -a runtime_lines (__tool_line "" "nodejs" \
-                (node --version 2>/dev/null | string replace '^' 'v' | string collect))
+                (node --version 2>/dev/null | string replace -r '^v' '' | string replace '^' 'v' | string collect))
         end
     end
     if __dt_enabled deno
@@ -260,7 +275,7 @@ end
 # the file actually changed. Designed to be called from
 # `dot-files --dev-tools reload` after sourcing this file.
 function __dt_reload
-    set -l devtools_file "$HOME/.config/starship/dev-tools.toml"
+    set -l devtools_file "$__dt_config_file"
     if not test -f "$devtools_file"
         echo "dot-files: dev-tools config not found, run: dot-files --dev-tools init" >&2
         return 1

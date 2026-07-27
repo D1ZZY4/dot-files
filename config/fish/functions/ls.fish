@@ -26,7 +26,10 @@ function ls --description 'List files with Nerd Font icons' --wraps ls
                 set long 1
                 set show_all 1
             case '-*'
-                command ls --color=auto -- $argv
+                # Pass through unknown flags to system ls. Omit --color=auto because
+                # BSD/macOS ls uses -G instead; color is already handled via eza/lsd
+                # when available.
+                command ls -- $argv
                 return $status
             case '*'
                 set -a paths $arg
@@ -111,23 +114,25 @@ function __ls_long_icons -a target show_all
         end
 
         set -l icon (__ls_icon "$name" "$full")
-        # GNU stat (-c) and BSD/macOS stat (-f) format strings differ.
-        # Each field falls back gracefully if the primary form is unsupported.
-        set -l perms (command stat -c '%A' -- "$full" 2>/dev/null)
-        or set -l perms (command stat -f '%Lp' -- "$full" 2>/dev/null)
-        set -l links (command stat -c '%h' -- "$full" 2>/dev/null)
-        or set -l links (command stat -f '%l' -- "$full" 2>/dev/null)
-        set -l user (command stat -c '%U' -- "$full" 2>/dev/null)
-        or set -l user (command stat -f '%Su' -- "$full" 2>/dev/null)
-        set -l group (command stat -c '%G' -- "$full" 2>/dev/null)
-        or set -l group (command stat -f '%Sg' -- "$full" 2>/dev/null)
-        set -l size (command stat -c '%s' -- "$full" 2>/dev/null)
-        or set -l size (command stat -f '%z' -- "$full" 2>/dev/null)
-        set -l mtime_raw (command stat -c '%y' -- "$full" 2>/dev/null)
-        or set -l mtime_raw (command stat -f '%Sm' -- "$full" 2>/dev/null)
-        # GNU date (-d) vs BSD/macOS date (-j -f). Both format a timestamp string.
-        set -l mtime (command date -d "$mtime_raw" '+%b %e %H:%M' 2>/dev/null)
-        or set -l mtime (command date -j -f '%b %e %H:%M:%S %Y' "$mtime_raw" '+%b %e %H:%M' 2>/dev/null)
+        # Detect stat flavour once per file, then use a single composite format.
+        # GNU: stat -c '%A %h %U %G %s %y'
+        # BSD: stat -f '%Lp %l %Su %Sg %sz %Sm'
+        set -l stat_fields
+        if command stat -c '%A' -- "$full" >/dev/null 2>&1
+            set stat_fields (command stat -c '%A %h %U %G %s %y' -- "$full")
+        else
+            set stat_fields (command stat -f '%Lp %l %Su %Sg %sz %Sm' -- "$full")
+        end
+        set -l perms (string split ' ' -- "$stat_fields")[1]
+        set -l links (string split ' ' -- "$stat_fields")[2]
+        set -l user (string split ' ' -- "$stat_fields")[3]
+        set -l group (string split ' ' -- "$stat_fields")[4]
+        set -l size (string split ' ' -- "$stat_fields")[5]
+        # stat's %y/%Sm already returns a human-readable timestamp — no date call needed.
+        set -l mtime (string split ' ' -- "$stat_fields")[6..-1]
+        if test (count $mtime) -gt 1
+            set mtime (string join ' ' $mtime)
+        end
         set -l display "$name"
 
         if test -L "$full"
