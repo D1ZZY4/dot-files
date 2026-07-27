@@ -2,7 +2,7 @@
 [git_branch]
 symbol = ""
 style = "bg:moon_teal fg:moon_bg0"
-format = "[@LEFT@](moon_teal)[ $symbol $branch ](fg:moon_bg0 bg:moon_teal)[@RIGHT@ ](fg:moon_teal)"
+format = "[@LEFT@](moon_teal)[ $symbol $branch $git_commit ](fg:moon_bg0 bg:moon_teal)[@RIGHT@ ](fg:moon_teal)"
 truncation_length = 32
 truncation_symbol = "…"
 
