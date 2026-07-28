@@ -221,7 +221,7 @@ function __dt_render
     if __dt_enabled gh
         if type -q gh
             set -a system_lines (__tool_line "" "gh" \
-                (gh --version 2>/dev/null | string replace -r 'gh version ([0-9.]+).*' 'v\1' | string collect))
+                (gh --version 2>/dev/null | string match -r 'gh version [0-9.]+' | string replace 'gh version ' 'v' | string collect))
         end
     end
 

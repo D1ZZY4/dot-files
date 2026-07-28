@@ -1,5 +1,10 @@
 if test -f /usr/share/cachyos-fish-config/cachyos-config.fish
     source /usr/share/cachyos-fish-config/cachyos-config.fish
+    # CachyOS defines fish_greeting which runs fastfetch. Our
+    # zz-fastfetch.fish handles Fastfetch + Dev Tools instead,
+    # so suppress the CachyOS greeting to avoid a double render.
+    functions -q fish_greeting; and functions -e fish_greeting
+    set -e -U fish_greeting 2>/dev/null
 end
 
 # Sensible default editor — only if the user hasn't already chosen one.
