@@ -24,8 +24,8 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
     echo "  dot-files --dev-tools init|toggle|reload"
     echo "  dot-files --doctor"
     echo "  dot-files --status"
-    echo "  dot-files --ls-style 1|2|3|5"
-    echo "  dot-files --ll-style 1|2|3|4"
+    echo "  dot-files --ls-style 1|2|3|4|5|6"
+    echo "  dot-files --ll-style 1|2|3|4|5|6"
     echo "  dot-files --ls-group on|off"
     echo ""
     echo "$heading""Active$normal"
@@ -74,4 +74,34 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
     set -l yellow (set_color yellow)
     echo "  $muted(system)$normal  Welcome, $yellow"{user-name}"$normal!"
     echo "  $muted(custom)$normal   Welcome, "$yellow"Alex"$normal"!"
+
+    # --- ls/ll style previews ---
+    set -l style_dir (command dirname -- "$style_file")
+    set -l saved_ls (dotfiles-read-setting "$style_dir/ls-style"; or echo 1)
+    set -l saved_ll (dotfiles-read-setting "$style_dir/ll-style"; or echo 1)
+    set -l saved_lsgrp (dotfiles-read-setting "$style_dir/ls-group"; or echo off)
+
+    echo ""
+    echo "$heading""ls/ll command previews$normal $muted(* = active)$normal"
+
+    echo "  $heading""ls styles$normal"
+    for s in 1 2 3 4 5 6
+        set -l mkr (__dotfiles_active_marker $s $saved_ls)
+        echo "  $mkr$s "(__dotfiles_ls_style_preview $s)
+    end
+
+    echo "  $heading""ll styles$normal"
+    for s in 1 2 3 4 5 6
+        set -l mkr (__dotfiles_active_marker $s $saved_ll)
+        echo "  $mkr$s "(__dotfiles_ll_style_preview $s)
+    end
+
+    echo "  $heading""ls group$normal"
+    if test "$saved_lsgrp" = on
+        echo "  "(set_color green)"*"(set_color normal)"on   --group-directories-first"
+        echo "   off  (default, no grouping)"
+    else
+        echo "   on   --group-directories-first"
+        echo "  "(set_color green)"*"(set_color normal)"off  (default, no grouping)"
+    end
 end
