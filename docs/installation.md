@@ -59,6 +59,7 @@ After install, edit these directly or use `dot-files`:
 ~/.config/starship/color         # moonlight | catppuccin-macchiato | catppuccin-mocha
 ~/.config/starship/username      # empty = system user; one line = custom name
 ~/.config/starship/modules.conf  # enabled modules (created on first toggle)
+~/.config/starship/dev-tools.toml # Dev Tools visibility (created by --dev-tools init)
 ```
 
 Empty `username` (comments only) keeps Fastfetch on `Welcome, {user-name}!`.

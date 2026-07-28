@@ -255,22 +255,36 @@ fish ~/.config/starship/build.fish
 │   └── preview/            # screenshots used in this README
 ├── config/
 │   ├── fastfetch/          # Fastfetch config + Dev Tools detection
-│   ├── fish/               # conf.d, functions, completions
-│   │   └── conf.d/
-│   │       ├── 10-startup-message.fish
-│   │       ├── 15-paths.fish       # fish_user_paths for persistent PATH
-│   │       ├── 20-starship.fish
-│   │       ├── 30-abbreviations.fish
-│   │       └── zz-fastfetch.fish
+│   │   ├── config.jsonc
+│   │   └── dev-tools.fish
+│   ├── fish/
+│   │   ├── config.fish     # minimal entry point
+│   │   ├── conf.d/         # startup fragments (loaded on shell start)
+│   │   │   ├── 10-startup-message.fish
+│   │   │   ├── 15-paths.fish       # fish_user_paths for persistent PATH
+│   │   │   ├── 20-starship.fish    # starship init (deferred to first prompt)
+│   │   │   ├── 30-abbreviations.fish
+│   │   │   └── zz-fastfetch.fish
+│   │   ├── completions/    # tab completions for dot-files
+│   │   └── functions/      # autoloaded commands
+│   │       ├── dot-files.fish
+│   │       ├── dotfiles-read-modules.fish
+│   │       ├── dotfiles-read-setting.fish
+│   │       ├── fastfetch-apply-welcome.fish
+│   │       ├── ls.fish
+│   │       └── nvm.fish
 │   └── starship/
-│       ├── colors/         # color themes
+│       ├── build.fish      # merges modules/*.toml + colors/*.toml
+│       ├── colors/         # color palettes
 │       ├── modules/        # modular prompt segments
 │       ├── style           # preference: separator 1–5
 │       ├── color           # preference: palette name
-│       └── username        # preference: Fastfetch welcome name
+│       ├── username        # preference: Fastfetch welcome name
+│       └── dev-tools.toml  # Dev Tools visibility config
 ├── docs/                   # detailed guides
 ├── install.sh
 ├── LICENSE
+├── PLANNING.md             # project task tracking
 └── README.md
 ```
 

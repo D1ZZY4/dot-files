@@ -42,7 +42,7 @@ dot-files --edit username  # apply Fastfetch welcome
 dot-files --edit dev-tools # edit visibility; changes apply next startup (or run reload)
 ```
 
-- **style / color / modules** — rebuilds the Starry config after the editor exits, then shows a prompt preview.
+- **style / color / modules** — rebuilds the Starship config after the editor exits, then shows a prompt preview.
 - **username** — runs `fastfetch-apply-welcome` after the editor exits.
 - **dev-tools** — reminders that changes apply on next startup; run `dot-files --dev-tools reload` to apply now without `exec fish`.
 
