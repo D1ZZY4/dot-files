@@ -1,3 +1,9 @@
+# Autoload helpers from dot-files/ directory.
+# Fish autoloads by filename from functions/, not subdirectories.
+for f in (dirname (status --current-filename))/dot-files/*.fish
+    test -f "$f"; and source "$f"
+end
+
 function dot-files --description 'Manage Starship and Fastfetch dotfiles preferences'
     set -l starship_dir "$HOME/.config/starship"
     set -l build_fish "$starship_dir/build.fish"

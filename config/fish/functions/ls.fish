@@ -1,6 +1,5 @@
 # Icon-aware ls for Fish when eza/lsd not installed.
 # Prefers: eza -> lsd -> built-in column/long listing with Nerd Font icons.
-
 function ls --description 'List files with Nerd Font icons' --wraps ls
     if type -q eza
         command eza --icons=always --group-directories-first -- $argv

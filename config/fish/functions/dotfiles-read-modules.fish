@@ -1,5 +1,4 @@
 # Read every non-comment, non-blank line from a preference file.
-
 function dotfiles-read-modules --argument-names file_path
     if not test -f "$file_path"
         return 1

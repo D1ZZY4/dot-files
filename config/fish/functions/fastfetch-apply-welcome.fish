@@ -1,7 +1,6 @@
 # Sync Fastfetch title from starship/username into config.jsonc.
 # Empty -> Welcome, {user-name}!  (system username)
 # Custom -> Welcome, Your Name!
-
 function fastfetch-apply-welcome --description 'Apply starship/username to Fastfetch config title'
     set -l fastfetch_config "$HOME/.config/fastfetch/config.jsonc"
     set -l username_file "$HOME/.config/starship/username"
