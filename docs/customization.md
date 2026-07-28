@@ -11,6 +11,11 @@ Three plain-text files control the most common options. Each supports `#` commen
 | `~/.config/starship/style` | Prompt separator style `1`–`5` | `dot-files --edit style` or new shell |
 | `~/.config/starship/color` | Palette name (`moonlight`, `catppuccin-macchiato`, `catppuccin-mocha`) | `dot-files --edit color` or new shell |
 | `~/.config/starship/username` | Custom Fastfetch welcome name | `dot-files --edit username` or `fastfetch-apply-welcome` |
+| `~/.config/starship/ls-style` | eza `ls` output style (1–6) | `dot-files --ls-style <N>` or new shell |
+| `~/.config/starship/ll-style` | eza `ll` output style (1–6) | `dot-files --ll-style <N>` or new shell |
+| `~/.config/starship/ls-group` | Group directories first (`on`/`off`) | `dot-files --ls-group on|off` or new shell |
+| `~/.config/starship/modules.conf` | Enabled Starship modules | `dot-files --edit modules` or `--enable-module`/`--disable-module` |
+| `~/.config/starship/dev-tools.toml` | Dev Tools visibility | `dot-files --edit dev-tools` or `--dev-tools toggle <tool>` |
 
 **System username (default):** leave `username` empty (comments only). Fastfetch shows `Welcome, {user-name}!`.
 
