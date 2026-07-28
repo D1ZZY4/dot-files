@@ -7,6 +7,6 @@ if status --is-interactive
             return
         end
         set -g __starship_initialized 1
-        type -q starship; and starship init fish | source
+        type -q starship; and command starship init fish | source
     end
 end

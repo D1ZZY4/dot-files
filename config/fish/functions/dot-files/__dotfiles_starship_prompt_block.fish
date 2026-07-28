@@ -6,7 +6,7 @@ function __dotfiles_starship_prompt_block
     end
 
     set -l lines (
-        env TERM="$term" STARSHIP_CONFIG="$config" starship prompt --terminal-width 200 2>/dev/null \
+        env TERM="$term" STARSHIP_CONFIG="$config" command starship prompt --terminal-width 200 2>/dev/null \
             | string collect \
             | string trim --right -- \
             | string split \n
