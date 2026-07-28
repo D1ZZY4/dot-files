@@ -6,8 +6,9 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
     set -l saved_style (dotfiles-read-setting "$style_file"; or echo 5)
     set -l saved_color (dotfiles-read-setting "$color_file"; or echo moonlight)
     set -l active_username (dotfiles-read-setting "$username_file")
+    or set active_username ""
     if test -z "$active_username"
-        set active_username "(system: {user-name})"
+        set active_username "system (Welcome, {user-name}!)"
     end
 
     set -l enabled_modules (dotfiles-read-modules "$modules_file")
