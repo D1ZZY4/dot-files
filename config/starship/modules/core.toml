@@ -73,12 +73,13 @@ symbol = " "
 style = "bold moon_blue"
 
 [status]
-disabled = false
+disabled = true
 symbol = "✘ "
 format = "[$symbol$status]($style) "
 style = "bold moon_red"
 
 [cmd_duration]
+disabled = true
 min_time = 1200
 format = "[󱎫 $duration]($style) "
 style = "moon_yellow"

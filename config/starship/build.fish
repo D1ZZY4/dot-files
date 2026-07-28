@@ -81,13 +81,19 @@ set -l enabled_modules (dotfiles-read-modules "$modules_file")
 set -l module_order
 if test (count $enabled_modules) -gt 0
     # core is mandatory; keep the canonical order, dropping disabled modules.
-    for module_name in (__dotfiles_all_modules)
+    if functions -q __dotfiles_all_modules
+        set -l all_modules (__dotfiles_all_modules)
+    else
+        # Fallback when dot-files.fish is not autoloaded (e.g., direct invocation).
+        set all_modules core directory git languages package file-icons
+    end
+    for module_name in $all_modules
         if test "$module_name" = core; or contains -- "$module_name" $enabled_modules
             set -a module_order $module_name
         end
     end
 else
-    set module_order (__dotfiles_all_modules)
+    set module_order core directory git languages package file-icons
 end
 
 for module_name in $module_order
