@@ -87,6 +87,10 @@ function __dotfiles_rebuild_quiet
     if not type -q starship
         return 0
     end
+    set -l build_fish "$HOME/.config/starship/build.fish"
+    if not test -f "$build_fish"
+        return 1
+    end
     fish "$build_fish" >/dev/null 2>&1
 end
 
@@ -247,11 +251,13 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
     echo "  dot-files --color moonlight|catppuccin-macchiato|catppuccin-mocha"
     echo "  dot-files --username NAME"
     echo "  dot-files --username reset"
+    echo "  dot-files --edit style|color|modules|username|dev-tools"
     echo "  dot-files --enable-module core|directory|git|languages|package|file-icons"
     echo "  dot-files --disable-module core|directory|git|languages|package|file-icons"
     echo "  dot-files --list-modules"
-    echo "  dot-files --dev-tools init"
-    echo "  dot-files --dev-tools toggle <tool>"
+    echo "  dot-files --dev-tools init|toggle|reload"
+    echo "  dot-files --doctor"
+    echo "  dot-files --status"
     echo ""
     echo "$heading""Active$normal"
     echo "  style:    $saved_style"
@@ -442,7 +448,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
 
         case --status
             __dotfiles_status
-            return 0
+            return $status
 
         case --style -s
             if test (count $argv) -lt 2
@@ -497,7 +503,8 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                 __dotfiles_username_template > "$username_file"
                 fastfetch-apply-welcome
                 and echo "dot-files: welcome reset to system username ($username_file)"
-                return 0
+                and return 0
+                return 1
             end
 
             __dotfiles_username_template > "$username_file"
@@ -505,6 +512,8 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
             fastfetch-apply-welcome
             and echo "Fastfetch welcome set to: Welcome, $username!"
             and echo "Saved in $username_file"
+            and return 0
+            return 1
 
         case --enable-module
             set -l module_name $argv[2]
@@ -630,7 +639,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
 
                 # [[:space:]]* ensures the tool name is followed by =, not another
                 # character like 'x' (e.g., 'npm' does not match 'npmx = true').
-                set -l current_val (grep -E "^$tool_name[[:space:]]*=" "$devtools_file" 2>/dev/null | tail -n 1 | string trim | string replace -r '.*=\s*' '' | string trim -c ',"')
+            set -l current_val (string match -r "^$tool_name[[:space:]]*=[[:space:]]*(.+)" < "$devtools_file" 2>/dev/null | tail -n 1 | string trim -c ',"' | string replace -r '.*=\s*' '' | string trim -c ',"')
                 if test -z "$current_val"
                     echo "dot-files: unknown tool '$tool_name'" >&2
                     set -l tools_list (string join ' ' (__dotfiles_devtools_list))
@@ -692,6 +701,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                     __dotfiles_edit_file "$username_file"; or return 1
                     fastfetch-apply-welcome
                     and echo "dot-files: welcome name updated"
+                    return 0
                 case dev-tools
                     __dotfiles_edit_file "$devtools_file"; or return 1
                     echo "dot-files: dev-tools updated (changes apply on next startup)"

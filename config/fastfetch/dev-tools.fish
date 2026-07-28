@@ -49,53 +49,43 @@ function __python_version_from_binary
 end
 
 function __python_minor_from_binary
-    set -l name (basename "$argv[1]")
+    set -l name (command basename "$argv[1]")
     string replace -r '^python' '' -- "$name"
 end
 
-function __collect_python_binaries
+function __dt_collect_python_binaries
     set -l seen
-    # Build a list of PATH directories that actually exist to avoid noise.
-    set -l valid_dirs
-    for path_dir in (string split : -- $PATH)
-        test -d "$path_dir"
-        and set -a valid_dirs "$path_dir"
-    end
-
-    # Portable: `find -maxdepth` is GNU-only, so we use find without depth limit
-    # and filter results to only keep files directly inside each PATH directory.
-    for binary in (find $valid_dirs -name 'python3.[0-9]*' -type f 2>/dev/null)
-        set -l bin_dir (dirname "$binary")
-        if not contains -- "$bin_dir" $valid_dirs
-            # File is in a subdirectory of a PATH entry — skip.
+    # Iterate PATH directories with Fish native glob — no `find` subprocess.
+    for path_dir in $PATH
+        if not test -d "$path_dir"
             continue
         end
-        set -l name (basename "$binary")
-        if not string match -qr '^python3\.[0-9]+$' -- "$name"
-            continue
-        end
-        if test -x "$binary"; and not contains -- "$binary" $seen
-            set -a seen "$binary"
-            echo "$binary"
+        for binary in "$path_dir"/python3.[0-9]*
+            if not test -x "$binary"
+                continue
+            end
+            set -l name (command basename "$binary")
+            if not string match -qr '^python3\.[0-9]+$' -- "$name"
+                continue
+            end
+            if not contains -- "$binary" $seen
+                set -a seen "$binary"
+                echo "$binary"
+            end
         end
     end
 end
 
-function __python_lines
+function __dt_python_lines
     set -l rows
-    for binary in (__collect_python_binaries)
+    for binary in (__dt_collect_python_binaries)
         set -l minor (__python_minor_from_binary "$binary")
         set -l py_version_value (__python_version_from_binary "$binary")
         if test -n "$minor"; and test -n "$py_version_value"
             set -a rows "$minor - $py_version_value"
         end
     end
-    set -l sorted_rows
-    for row in $rows
-        set -a sorted_rows (string replace '^python3\.' '' -- "$row")
-    end
-    set sorted_rows (string join \n $sorted_rows | sort -n | uniq)
-    set rows $sorted_rows
+    set rows (string join \n $rows | sort -n | uniq)
     if test (count $rows) -eq 0
         return
     end
@@ -219,7 +209,7 @@ function __dt_render
     end
 
     if __dt_enabled python
-        set -a python_lines (__python_lines)
+        set -a python_lines (__dt_python_lines)
     end
 
     if __dt_enabled git
@@ -286,8 +276,8 @@ function __dt_reload
     set -l current_mtime
     if command -v stat >/dev/null 2>&1
         # GNU stat (-c) vs BSD/macOS stat (-f). Both return epoch seconds.
-        stat -c '%Y' "$devtools_file" 2>/dev/null
-        or stat -f '%m' "$devtools_file" 2>/dev/null
+        set current_mtime (stat -c '%Y' "$devtools_file" 2>/dev/null)
+        or set current_mtime (stat -f '%m' "$devtools_file" 2>/dev/null)
     end
 
     # Security invariant: all version_command strings in __dt_render are hardcoded

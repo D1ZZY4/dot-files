@@ -72,7 +72,7 @@ function __ls_entries -a target show_all
             command ls "$target" 2>/dev/null
         end
     else
-        basename "$target"
+        command basename "$target"
     end
 end
 
@@ -80,7 +80,7 @@ function __ls_full_path -a target name
     if test "$name" = .
         echo "$target"
     else if test "$name" = ..
-        dirname "$target"
+        command dirname "$target"
     else if test -d "$target"
         echo "$target/$name"
     else
@@ -118,10 +118,11 @@ function __ls_long_icons -a target show_all
         # GNU: stat -c '%A %h %U %G %s %y'
         # BSD: stat -f '%Lp %l %Su %Sg %sz %Sm'
         set -l stat_fields
-        if command stat -c '%A' -- "$full" >/dev/null 2>&1
-            set stat_fields (command stat -c '%A %h %U %G %s %y' -- "$full")
-        else
-            set stat_fields (command stat -f '%Lp %l %Su %Sg %sz %Sm' -- "$full")
+        # Try GNU stat format first; fallback to BSD/macOS on failure.
+        set stat_fields (command stat -c '%A %h %U %G %s %y' -- "$full" 2>/dev/null)
+        or set stat_fields (command stat -f '%Lp %l %Su %Sg %z %Sm' -- "$full" 2>/dev/null)
+        if test -z "$stat_fields"
+            continue
         end
         set -l perms (string split ' ' -- "$stat_fields")[1]
         set -l links (string split ' ' -- "$stat_fields")[2]

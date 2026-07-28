@@ -25,8 +25,12 @@ function fastfetch-apply-welcome --description 'Apply starship/username to Fastf
         set format_line '"format": "Welcome, '"$safe_name"'!"'
     end
 
-    # mktemp ensures an unpredictable, atomic temp file in a safe directory.
-    set -l tmp (mktemp)
+    # mktemp /tmp/dotfiles.XXXXXX is portable across GNU and BSD/macOS.
+    set -l tmp (mktemp /tmp/dotfiles.XXXXXX)
+    if test -z "$tmp"
+        echo "dot-files: mktemp failed" >&2
+        return 1
+    end
     # Fish's string replace -r always exits 0 — verify the pattern exists first.
     if grep -q '"format": "Welcome, [^"]*!"' "$fastfetch_config"
         string replace -r '"format": "Welcome, [^"]*!"' "$format_line" \
