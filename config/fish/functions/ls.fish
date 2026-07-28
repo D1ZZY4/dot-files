@@ -1,5 +1,9 @@
-# Icon-aware ls for Fish when eza/lsd not installed.
+# Guard: interactive only
+if not status --is-interactive
+    exit 0
+end
 
+# Source icon helpers from ls/ subdirectory.
 for f in (dirname (status --current-filename))/ls/*.fish
     test -f "$f"; and source "$f"
 end
