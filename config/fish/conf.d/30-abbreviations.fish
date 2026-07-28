@@ -20,13 +20,13 @@ if type -q git
 end
 
 if type -q eza
-    abbr -a ls eza
+    abbr -a ls 'eza --icons'
     abbr -a ll 'eza -la --icons'
     abbr -a lt 'eza --tree --level=2 --icons'
     abbr -a lta 'eza --tree --level=3 --icons -a'
 else if type -q lsd
-    abbr -a ls lsd
-    abbr -a ll 'lsd -la'
+    abbr -a ls 'lsd --icon always'
+    abbr -a ll 'lsd -la --icon always'
     abbr -a lt 'lsd --tree --depth 2'
     abbr -a lta 'lsd --tree --depth 3 -a'
 end
