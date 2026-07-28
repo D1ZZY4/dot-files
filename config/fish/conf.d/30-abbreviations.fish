@@ -47,7 +47,7 @@ if type -q dust
     abbr -a du dust
 end
 
-if type -a procs >/dev/null 2>&1
+if type -q procs
     abbr -a ps procs
 end
 

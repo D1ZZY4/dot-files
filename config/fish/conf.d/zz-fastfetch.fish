@@ -4,13 +4,8 @@
 
 if status --is-interactive
     if type -q fastfetch
-        # Apply welcome name synchronously (fast file I/O)
-        if functions -q fastfetch-apply-welcome
-            fastfetch-apply-welcome
-        end
-
-        # Run everything in background for instant prompt
         begin
+            functions -q fastfetch-apply-welcome; and fastfetch-apply-welcome
             fastfetch --config "$HOME/.config/fastfetch/config.jsonc"
             if test -f "$HOME/.config/fastfetch/dev-tools.fish"
                 fish "$HOME/.config/fastfetch/dev-tools.fish"
