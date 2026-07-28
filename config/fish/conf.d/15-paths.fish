@@ -1,14 +1,13 @@
-# Persistent PATH additions via universal `fish_user_paths`.
-# Tools like fnm, mise, cargo, go, python venvs, and others append their bin
-# directories here. Fish prepends these entries to PATH on every shell startup
-# and deduplicates automatically.
-# Guarded to interactive shells only: PATH is inherited from the login shell.
+# Persistent PATH via fish_user_paths.
+# fnm, mise, cargo, go, python venvs write their bin dirs here.
+# Fish prepends them to PATH on startup and deduplicates.
+# Interactive only: PATH inherits from login shell.
 
 if status --is-interactive
-    # Create the universal variable if it does not already exist.
+    # Create if not already set.
     set -q fish_user_paths; or set -U fish_user_paths
 
-# ── Common PATH entries for CachyOS / general Linux ──────────────────────
+# ── Common PATH entries ────────────────────────────────────────────────
 #
 # fnm (Fast Node Manager):
 #   fnm env --shell fish | source
@@ -25,6 +24,6 @@ if status --is-interactive
 # Python user scripts:
 #   set -U fish_user_paths ~/.local/bin $fish_user_paths
 #
-# Add entries from your shell rc or a tool's installer. The universal variable
-# survives across sessions and avoids cluttering config.fish with hardcoded paths.
+# Add entries from your shell rc or tool installer. The universal variable
+# survives restarts and keeps config.fish clean.
 end

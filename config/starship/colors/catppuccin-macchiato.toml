@@ -1,4 +1,4 @@
-# Catppuccin Macchiato palette (same token names as moonlight modules).
+# Catppuccin Macchiato palette (same moon_* tokens as moonlight).
 [palettes.catppuccin-macchiato]
 moon_fg = "#cad3f5"
 moon_bg0 = "#181926"

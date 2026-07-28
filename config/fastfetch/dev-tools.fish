@@ -1,12 +1,12 @@
 #!/usr/bin/env fish
-# Dev Tools startup block: lists installed runtimes, package managers, Python, and CLI tools.
-# Invoked from ~/.config/fish/conf.d/zz-fastfetch.fish after Fastfetch.
-# Individual tools can be toggled via: dot-files --dev-tools toggle <tool>
+# Dev Tools: lists installed runtimes, package managers, Python, and CLI tools.
+# Called from zz-fastfetch.fish after Fastfetch.
+# Toggle via: dot-files --dev-tools toggle <tool>
 
-# Global so the functions below can see it (Fish functions do not inherit script locals).
+# Global so nested functions can see it.
 set -g __dt_config_file "$HOME/.config/starship/dev-tools.toml"
 
-# A tool is enabled unless dev-tools.toml explicitly sets `<tool> = false`.
+# Enabled unless dev-tools.toml sets `<tool> = false`.
 function __dt_enabled
     set -l tool $argv[1]
     if test -z "$tool"
@@ -55,7 +55,7 @@ end
 
 function __dt_collect_python_binaries
     set -l seen
-    # Iterate PATH directories with Fish native glob — no `find` subprocess.
+    # Use Fish glob over PATH, not `find`.
     for path_dir in $PATH
         if not test -d "$path_dir"
             continue
@@ -113,8 +113,8 @@ function __print_section
     end
 end
 
-# Render the Dev Tools block. Extracted so __dt_reload can re-render without
-# re-sourcing the entire file (which would try to auto-render again).
+# Render Dev Tools. Extracted so __dt_reload can call it without re-sourcing
+# the whole file (which triggers auto-render).
 function __dt_render
     set -l muted (set_color brblack)
     set -l title (set_color magenta)
@@ -125,9 +125,8 @@ function __dt_render
     set -l infra_color (set_color brblue)
     set -l normal (set_color normal)
 
-    # Build version lines based on enabled tools. Each tool is a direct Fish
-    # pipeline — the tool's own --version piped through Fish builtins.
-    # No eval, no bash -c.
+    # Version lines for enabled tools. Straight pipe through Fish builtins.
+    # No eval or bash -c.
     set -l runtime_lines
     set -l package_lines
     set -l python_lines
@@ -260,10 +259,9 @@ function __dt_render
     __print_section "$infra_color" "Infrastructure" $infra_lines
 end
 
-# Re-render the Dev Tools block from the current session. Tracks the
-# dev-tools.toml mtime in a universal variable so it only re-renders when
-# the file actually changed. Designed to be called from
-# `dot-files --dev-tools reload` after sourcing this file.
+# Re-render Dev Tools without restarting the shell.
+# Tracks dev-tools.toml mtime so it only re-renders on actual changes.
+# Called from `dot-files --dev-tools reload`.
 function __dt_reload
     set -l devtools_file "$__dt_config_file"
     if not test -f "$devtools_file"
@@ -271,7 +269,7 @@ function __dt_reload
         return 1
     end
 
-    # Track config file mtime; only re-render when the file changed.
+    # Only re-render if config changed.
     set -q __dt_config_file_mtime; or set -U __dt_config_file_mtime 0
     set -l current_mtime
     if command -v stat >/dev/null 2>&1
@@ -280,13 +278,11 @@ function __dt_reload
         or set current_mtime (stat -f '%m' "$devtools_file" 2>/dev/null)
     end
 
-    # Security invariant: all version_command strings in __dt_render are hardcoded
-    # literals. They must never be derived from user input — they are piped through
-    # Fish builtins (string replace), not eval or bash -c, so injection is not
-    # possible as long as this invariant holds.
+    # All version commands in __dt_render are hardcoded literals, never user input.
+    # Piped through Fish builtins, not eval or bash -c.
 
     if test -z "$current_mtime"
-        # OS without GNU stat — just render.
+        # No stat available, render anyway.
         __dt_render
         echo "Dev Tools reloaded."
         return 0
@@ -302,8 +298,8 @@ function __dt_reload
     echo "Dev Tools reloaded."
 end
 
-# Auto-render when this script is invoked directly (e.g., from zz-fastfetch.fish).
-# Skip when sourced for function definitions (reload helper passes this flag).
+# Auto-render on direct invocation (zz-fastfetch.fish).
+# Skip when sourced for reload (flag passed by caller).
 if not set -q __dt_force_no_auto_render
     __dt_render
 end

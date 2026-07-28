@@ -1,4 +1,4 @@
-# Moonlight palette. Token names (moon_*) are referenced in starship modules.
+# Moonlight palette. Tokens used as fg:moon_* / bg:moon_* in modules.
 [palettes.moonlight]
 moon_fg = "#c8d3f5"
 moon_bg0 = "#131421"

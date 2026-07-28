@@ -1,5 +1,4 @@
-# Read the first meaningful line from a dotfiles preference file.
-# Skips blank lines and lines starting with #.
+# Read first non-comment, non-blank line from a preference file.
 
 function dotfiles-read-setting --argument-names file_path
     if not test -f "$file_path"

@@ -1,15 +1,13 @@
 function nvm --description 'Node Version Manager wrapper (lazy-loads nvm on first call)'
-    # nvm is a bash-only script; there is no Fish-native equivalent. When nvm
-    # is not already loaded, this wrapper delegates to bash so that nvm's
-    # initialization and argument handling work correctly.
-    # Use a marker flag to avoid the self-referential `type -q nvm` check
-    # (which always succeeds since this function is named nvm).
+    # nvm is bash-only, no Fish equivalent. Delegate to bash when not loaded.
+    # Use a marker flag instead of `type -q nvm` — that always returns 0
+    # (this function IS nvm).
     if set -q __nvm_loaded
         return 0
     end
 
-    # NVM_DIR is passed as a positional arg to bash ($1) rather than
-    # interpolated into the -c string, preventing single-quote breakout.
+    # Pass NVM_DIR as positional arg ($1) instead of interpolating into
+    # the -c string. Prevents single-quote breakout.
     set -l nvm_dir
     set -l nvm_sh
     if test -n "$NVM_DIR" -a -f "$NVM_DIR/nvm.sh"

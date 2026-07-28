@@ -1,5 +1,5 @@
-# Abbreviations expand on SPACE/ENTER in interactive sessions only.
-# Guarded by type checks so they stay functional even when the target is missing.
+# Abbreviations expand on SPACE/ENTER. Interactive only.
+# Guarded with type checks so missing tools don't break things.
 if status --is-interactive
 
 if type -q git

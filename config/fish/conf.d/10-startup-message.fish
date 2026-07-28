@@ -1,5 +1,4 @@
-# Suppress Fish's default welcome message.
-# Fastfetch startup banner and Dev Tools take over this responsibility.
+# Suppress Fish greeting. Fastfetch + Dev Tools handle startup.
 
 if status --is-interactive
     functions -q fish_greeting; and functions -e fish_greeting

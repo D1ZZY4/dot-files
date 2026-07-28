@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
-# Dotfiles installer (Fish shell). Installs config/fish, starship, and fastfetch into ~/.config.
-# Supports clone-based and curl-based installs. Backs up replaced files before overwriting.
+# Dotfiles installer (Fish shell). Installs config/ into ~/.config.
+# Supports clone and curl installs. Backs up replaced files.
 
 set -eu
 
@@ -9,7 +9,7 @@ DOTFILES_REPO_URL=${DOTFILES_REPO_URL:-https://github.com/D1ZZY4/dot-files.git}
 INSTALL_MODE=${INSTALL_MODE:-symlink}
 BACKUP_DIR=${BACKUP_DIR:-"$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"}
 DRY_RUN=${DRY_RUN:-0}
-# Accept common truthy values: 1, true, yes, on
+# Accept 1, true, yes, on as truthy
 is_dry_run() { case "${DRY_RUN}" in 1|true|yes|on) return 0 ;; *) return 1 ;; esac }
 DOTFILES_WELCOME_NAME=${DOTFILES_WELCOME_NAME:-}
 
@@ -97,10 +97,7 @@ resolve_source_dir() {
     return
   fi
 
-  # $0 is unreliable when piped (e.g. curl | sh). If stdin is not seekable
-  # (pipe/redirect), skip the local-script-dir detection and go straight to
-  # the clone path. /dev/stdin may not exist on all systems, so test it
-  # indirectly via [ -t 0 ] (true when stdin is a terminal).
+  # $0 is unreliable with curl | sh. [ -t 0 ] detects pipe vs terminal.
   if [ ! -t 0 ] && [ -n "$DOTFILES_REPO_URL" ]; then
     :
   else

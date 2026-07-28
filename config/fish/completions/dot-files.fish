@@ -1,15 +1,13 @@
 # Completions for dot-files.
-# Module lists are generated from __dotfiles_all_modules when available,
-# falling back to the canonical list if the function isn't loaded yet.
-# Edit the canonical list in functions/dot-files.fish — not here.
+# Module list: uses __dotfiles_all_modules if loaded, falls back to hardcoded list.
+# Edit source list in functions/dot-files.fish, not here.
 
 complete -c dot-files -f
 complete -c dot-files -s s -l style -x -a '1 2 3 4 5' -d 'Set separator style (1-5)'
 complete -c dot-files -s c -l color -x -a 'moonlight catppuccin-macchiato catppuccin-mocha' -d 'Set color palette'
 complete -c dot-files -s u -l username -x -a 'reset' -d 'Set Fastfetch welcome name ("reset" for system user)'
 
-# Build module completion candidates from __dotfiles_all_modules, excluding core.
-# Must be a single space-separated string for complete -a.
+# Build module completion candidates (exclude core, must be space-separated).
 set -l _dotfiles_module_opts
 if functions -q __dotfiles_all_modules
     for m in (__dotfiles_all_modules)
@@ -32,8 +30,7 @@ complete -c dot-files -s e -l edit -x -a 'style color modules username dev-tools
 
 complete -c dot-files -l dev-tools -x -a 'init toggle reload' -d 'Manage the dev-tools config or toggle a tool'
 
-# Dev-tools toggle candidates from __dotfiles_devtools_list, with hardcoded fallback
-# matching the canonical list in functions/dot-files.fish.
+# Dev-tools toggle candidates from __dotfiles_devtools_list, with fallback.
 set -l _dotfiles_devtools_opts
 if functions -q __dotfiles_devtools_list
     set _dotfiles_devtools_opts (__dotfiles_devtools_list)

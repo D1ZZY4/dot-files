@@ -1,17 +1,14 @@
 #!/usr/bin/env fish
-# Merge modular Starship sources into ~/.config/starship/starship.toml.
+# Merge modular Starship sources into starship.toml.
 #
-# Preference files in this directory:
-#   style        — separator style 1-5
-#   color        — palette name matching colors/<name>.toml
-#   modules.conf — enabled modules, one per line; a leading # disables
+# Preference files:
+#   style        — separator 1-5
+#   color        — palette name (colors/<name>.toml)
+#   modules.conf — enabled modules, one per line; # disables
 #   username     — Fastfetch welcome name
 #
-# Rebuild by running this file directly, or via:
-#   dot-files --edit style|color|modules|username
-#
-# Uses dotfiles-read-setting / dotfiles-read-modules, autoloaded from
-# ~/.config/fish/functions. Missing preference files fall back to defaults.
+# Run directly: fish build.fish
+# Or via: dot-files --edit style|color|modules
 
 set -l config_dir (dirname (status --current-filename))
 set -l output "$config_dir/starship.toml"
@@ -19,8 +16,7 @@ set -l style_file "$config_dir/style"
 set -l color_file "$config_dir/color"
 set -l modules_file "$config_dir/modules.conf"
 set -l colors_dir "$config_dir/colors"
-# Env overrides for preview runs (used by dot-files --edit/show-catalog without
-# touching the live preference files). When unset, fall back to the preference file.
+# Preview overrides: env vars bypass live preference files.
 set -l style
 set -l color_theme
 if test -n "$STARSHIP_STYLE_PREVIEW"
@@ -41,7 +37,7 @@ if not test -f "$selected_color_file"
     set selected_color_file "$colors_dir/moonlight.toml"
 end
 
-# Powerline separator glyphs for styles 1-5 (injected into module format strings).
+# Powerline separators for styles 1-5 (injected via @LEFT@ / @RIGHT@ tokens).
 set -l left ''
 set -l right ''
 
@@ -80,11 +76,11 @@ echo "# Do not edit this generated file directly unless you know what you are do
 set -l enabled_modules (dotfiles-read-modules "$modules_file")
 set -l module_order
 if test (count $enabled_modules) -gt 0
-    # core is mandatory; keep the canonical order, dropping disabled modules.
+    # core is mandatory; drop disabled modules, keep order.
     if functions -q __dotfiles_all_modules
         set -l all_modules (__dotfiles_all_modules)
     else
-        # Fallback when dot-files.fish is not autoloaded (e.g., direct invocation).
+        # Fallback for direct invocation (dot-files.fish may not be loaded).
         set all_modules core directory git languages package file-icons
     end
     for module_name in $all_modules
@@ -110,7 +106,7 @@ for module_name in $module_order
     echo "" >> $output
 end
 
-# Palettes must be last: TOML keys after [palettes.*] belong to that table until the next [section].
+# Palettes go last: TOML keys after [palettes.*] belong to that table until next [section].
 echo "" >> $output
 echo "# --- colors/$color_theme.toml ---" >> $output
 cat $selected_color_file >> $output

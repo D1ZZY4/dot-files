@@ -1,6 +1,4 @@
-# Startup banner: Fastfetch system summary and Dev Tools.
-# Backgrounded to ensure zero shell startup latency.
-# Output will render shortly after the prompt displays.
+# Fastfetch + Dev Tools. Backgrounded so it doesn't slow down shell startup.
 
 if status --is-interactive
     if type -q fastfetch

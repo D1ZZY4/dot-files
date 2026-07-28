@@ -1,4 +1,4 @@
-# Icon-aware ls for Fish when eza/lsd are not installed.
+# Icon-aware ls for Fish when eza/lsd not installed.
 # Prefers: eza -> lsd -> built-in column/long listing with Nerd Font icons.
 
 function ls --description 'List files with Nerd Font icons' --wraps ls
@@ -26,9 +26,8 @@ function ls --description 'List files with Nerd Font icons' --wraps ls
                 set long 1
                 set show_all 1
             case '-*'
-                # Pass through unknown flags to system ls. Omit --color=auto because
-                # BSD/macOS ls uses -G instead; color is already handled via eza/lsd
-                # when available.
+                # Unknown flags: pass through to system ls.
+                # BSD/macOS uses -G instead of --color=auto; eza/lsd already handle color.
                 command ls -- $argv
                 return $status
             case '*'
@@ -114,9 +113,9 @@ function __ls_long_icons -a target show_all
         end
 
         set -l icon (__ls_icon "$name" "$full")
-        # Detect stat flavour once per file, then use a single composite format.
+        # Detect stat flavour once per file.
         # GNU: stat -c '%A %h %U %G %s %y'
-        # BSD: stat -f '%Lp %l %Su %Sg %sz %Sm'
+        # BSD: stat -f '%Lp %l %Su %Sg %z %Sm'
         set -l stat_fields
         # Try GNU stat format first; fallback to BSD/macOS on failure.
         set stat_fields (command stat -c '%A %h %U %G %s %y' -- "$full" 2>/dev/null)
@@ -129,7 +128,7 @@ function __ls_long_icons -a target show_all
         set -l user (string split ' ' -- "$stat_fields")[3]
         set -l group (string split ' ' -- "$stat_fields")[4]
         set -l size (string split ' ' -- "$stat_fields")[5]
-        # stat's %y/%Sm already returns a human-readable timestamp — no date call needed.
+        # stat's %y/%Sm already returns human-readable timestamp.
         set -l mtime (string split ' ' -- "$stat_fields")[6..-1]
         if test (count $mtime) -gt 1
             set mtime (string join ' ' $mtime)

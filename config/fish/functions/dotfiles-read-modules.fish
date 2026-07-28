@@ -1,5 +1,4 @@
-# Read every enabled line from a dotfiles preference file.
-# Emits each non-blank, non-comment line (trimmed) on its own line.
+# Read every non-comment, non-blank line from a preference file.
 
 function dotfiles-read-modules --argument-names file_path
     if not test -f "$file_path"

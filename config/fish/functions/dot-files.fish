@@ -1,21 +1,20 @@
-# Manage dotfiles preferences: Starship style/color, Fastfetch welcome, dev-tools, and modules.
+# Manage dotfiles: Starship style/color, Fastfetch welcome, dev-tools, modules.
 #
-# Preference files (installed under ~/.config/starship/):
-#   style      — separator style 1-5
-#   color      — moonlight | catppuccin-macchiato | catppuccin-mocha
-#   username   — Fastfetch welcome name (empty = system username)
-#   dev-tools.toml — controls which dev tools are shown
-#   modules.conf   — one module name per line; a leading # disables that module
+# Preference files (~/.config/starship/):
+#   style        — separator 1-5
+#   color        — moonlight | catppuccin-macchiato | catppuccin-mocha
+#   username     — Fastfetch welcome name (empty = system user)
+#   dev-tools.toml  — tool visibility
+#   modules.conf    — one per line; # disables
 
 function __dotfiles_all_modules
     printf '%s\n' core directory git languages package file-icons
 end
 
-# Escape regex metacharacters for safe literal sed matching.
+# Escape regex metacharacters for sed.
 function __dotfiles_regex_escape
     set -l s $argv[1]
-    # Escape each BRE metacharacter. Replacement strings use double-backslash
-    # because string replace -a interprets \X as a special escape; \\ → \ literal.
+    # Doubled backslash because string replace -a interprets \X specially.
     string replace -a '\\' '\\' -- "$s" \
         | string replace -a '/' '\\/' \
         | string replace -a '.' '\\.' \
@@ -34,8 +33,7 @@ function __dotfiles_regex_escape
         | string replace -a '&' '\\&'
 end
 
-# Create modules.conf with every module enabled (file-icons disabled by default)
-# if it does not already exist. build.fish reads this file to order the prompt.
+# Create modules.conf with defaults (file-icons disabled) if it doesn't exist.
 function __dotfiles_init_modules_file --argument-names modules_file
     if test -f "$modules_file"
         return 0
@@ -122,10 +120,8 @@ function __dotfiles_print_prompt_preview --argument-names label
     end
 end
 
-# Open a preference file in the user's preferred editor.
-# The `-f` existence guard is a safety net — each public caller already verifies
-# the file exists before invoking this helper (via the style, color, modules,
-# username, or dev-tools branches).
+# Open a preference file in $EDITOR.
+# The `-f` guard is a safety net — callers check existence first.
 function __dotfiles_edit_file --argument-names file_path
     if not test -f "$file_path"
         echo "dot-files: $file_path does not exist" >&2
@@ -151,9 +147,7 @@ function __dotfiles_edit_file --argument-names file_path
     end
 end
 
-# Locate the dotfiles installation repo. Checks the curl-installed path
-# ($HOME/.local/share/dotfiles) and the DOTFILES_DIR env override. Returns
-# the repo path on stdout, empty string if not found.
+# Find dotfiles repo. Checks curl-installed path then DOTFILES_DIR.
 function __dotfiles_repo_path
     set -l curl_path "$HOME/.local/share/dotfiles"
     if test -d "$curl_path"; and git -C "$curl_path" rev-parse --is-inside-work-tree >/dev/null 2>&1
@@ -171,8 +165,7 @@ end
 
 # Report the git status of the installed dotfiles repo.
 function __dotfiles_status
-    # set does not propagate the exit status of command substitution, so check
-    # $repo directly instead of $status.
+    # Command substitution doesn't propagate exit status. Check $repo directly.
     set -l repo (__dotfiles_repo_path)
     if test -z "$repo"
         echo "Installed via copy or unknown source. Cannot determine status."
@@ -216,12 +209,11 @@ function __dotfiles_status
         echo "Installed dotfiles are up to date."
     end
 
-    # Exit 1 when dirty or behind so scripts/CI can detect drift.
+    # Exit 1 when dirty/behind so scripts can detect drift.
     return $dirty
 end
 
-# Canonical dev-tools tool list — single source of truth for init template,
-# toggle error messages, and completions. Edit this; don't duplicate it.
+# Dev-tools tool list. Single source: edit here, not elsewhere.
 function __dotfiles_devtools_list
     printf '%s\n' nodejs deno bun go rustc java npm pnpm yarn cargo pipx uv python git gh docker compose kubectl
 end
@@ -296,8 +288,7 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
         __dotfiles_print_prompt_preview "$marker$color_check"
     end
 
-    # Live files were never touched; one final rebuild restores the on-disk
-    # starship.toml to match the saved preferences.
+    # Restore starship.toml to saved preferences (preview never touched files).
     set -e STARSHIP_STYLE_PREVIEW
     set -e STARSHIP_COLOR_PREVIEW
     __dotfiles_rebuild_quiet
@@ -309,7 +300,7 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
     echo "  $muted(custom)$normal   Welcome, "$yellow"Alex"$normal"!"
 end
 
-# Read-only diagnostics. Does not write to any file.
+# Read-only diagnostics. Never writes files.
 function __dotfiles_doctor
     set -l starship_dir "$HOME/.config/starship"
     set -l color_file "$starship_dir/color"
@@ -637,8 +628,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                     return 1
                 end
 
-                # [[:space:]]* ensures the tool name is followed by =, not another
-                # character like 'x' (e.g., 'npm' does not match 'npmx = true').
+                # Tool name must be followed by =, not another char (npm != npmx).
             set -l current_val (string match -r "^$tool_name[[:space:]]*=[[:space:]]*(.+)" < "$devtools_file" 2>/dev/null | tail -n 1 | string trim -c ',"' | string replace -r '.*=\s*' '' | string trim -c ',"')
                 if test -z "$current_val"
                     echo "dot-files: unknown tool '$tool_name'" >&2
@@ -655,7 +645,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                 end
 
                 set -l escaped (__dotfiles_regex_escape "$tool_name")
-                # sed -i.bak is portable across GNU and BSD/macOS sed.
+                # sed -i.bak works on GNU and BSD/macOS.
                 sed -i.bak "s/^$escaped[[:space:]]*=[[:space:]]*.*/$tool_name = $new_val/" "$devtools_file"
                 rm -f "$devtools_file.bak"
                 echo "dot-files: $tool_name -> $new_val"
@@ -667,8 +657,8 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                     echo "dot-files: dev-tools config not found, run: dot-files --dev-tools init" >&2
                     return 1
                 end
-                # Source dev-tools.fish with the auto-render guard so __dt_reload
-                # becomes available without re-rendering on source.
+                # Source dev-tools.fish with auto-render disabled so __dt_reload
+                # is available without double-rendering.
                 set -x __dt_force_no_auto_render 1
                 source "$HOME/.config/fastfetch/dev-tools.fish"
                 set -e __dt_force_no_auto_render
