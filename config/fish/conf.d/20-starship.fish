@@ -3,11 +3,11 @@
 # Deferred to first prompt render to avoid spawning the Rust binary on every startup.
 
 if status --is-interactive
-    function __starship_init --on-event fish_prompt --inherit-variable _starship_ran
-        if set -q _starship_ran
+    function __starship_init --on-event fish_prompt
+        if set -q __starship_initialized
             return
         end
-        set -g _starship_ran 1
+        set -g __starship_initialized 1
         type -q starship; and starship init fish | source
     end
 end
