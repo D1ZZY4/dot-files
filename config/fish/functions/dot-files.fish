@@ -80,18 +80,18 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
             set -l username $argv[2]
             if test "$username" = reset -o "$username" = system -o "$username" = default
                 __dotfiles_username_template > "$username_file"
-                fastfetch-apply-welcome
-                and echo "dot-files: welcome reset to system username ($username_file)"
-                and return 0
-                return 1
+                fastfetch-apply-welcome \
+                    && echo "dot-files: welcome reset to system username ($username_file)" \
+                    || { echo "dot-files: fastfetch-apply-welcome failed, check ~/.config/fastfetch/config.jsonc" >&2; return 1; }
+                return 0
             end
             __dotfiles_username_template > "$username_file"
             echo "$username" >> "$username_file"
-            fastfetch-apply-welcome
-            and echo "Fastfetch welcome set to: Welcome, $username!"
-            and echo "Saved in $username_file"
-            and return 0
-            return 1
+            fastfetch-apply-welcome \
+                && echo "Fastfetch welcome set to: Welcome, $username!" \
+                && echo "Saved in $username_file" \
+                || { echo "dot-files: fastfetch-apply-welcome failed, check ~/.config/fastfetch/config.jsonc" >&2; return 1; }
+            return 0
 
         case --enable-module
             set -l module_name $argv[2]
