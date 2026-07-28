@@ -1,120 +1,14 @@
 #!/usr/bin/env fish
 # Dev Tools: lists installed runtimes, package managers, Python, and CLI tools.
 # Called from zz-fastfetch.fish after Fastfetch.
-# Toggle via: dot-files --dev-tools toggle <tool>
 
-# Global so nested functions can see it.
 set -g __dt_config_file "$HOME/.config/starship/dev-tools.toml"
 
-# Enabled unless dev-tools.toml sets `<tool> = false`.
-function __dt_enabled
-    set -l tool $argv[1]
-    if test -z "$tool"
-        return 1
-    end
-    if test -f "$__dt_config_file"; and grep -q "^$tool[ 	]*=[ 	]*false" "$__dt_config_file" 2>/dev/null
-        return 1
-    end
-    return 0
+# Source helpers from dev-tools/ directory.
+for f in (dirname (status --current-filename))/dev-tools/*.fish
+    test -f "$f"; and source "$f"
 end
 
-function __pad_label
-    set -l label $argv[1]
-    set -l width $argv[2]
-    set -l length (string length -- "$label")
-    if test $length -ge $width
-        echo -n "$label"
-        return
-    end
-    echo -n "$label"(string repeat -n (math $width - $length) ' ')
-end
-
-function __tool_line
-    set -l icon $argv[1]
-    set -l label $argv[2]
-    set -l tool_version $argv[3]
-    if test -n "$tool_version"
-        set -l padded_label (__pad_label "$label" 10)
-        echo "  $icon  $padded_label  $tool_version"
-    end
-end
-
-function __python_version_from_binary
-    if test -x "$argv[1]"
-        set -l py_version_value (command $argv[1] --version 2>/dev/null | string replace 'Python ' 'v')
-        if test -n "$py_version_value"
-            echo "$py_version_value"
-        end
-    end
-end
-
-function __python_minor_from_binary
-    set -l name (command basename "$argv[1]")
-    string replace -r '^python' '' -- "$name"
-end
-
-function __dt_collect_python_binaries
-    set -l seen
-    # Use Fish glob over PATH, not `find`.
-    for path_dir in $PATH
-        if not test -d "$path_dir"
-            continue
-        end
-        for binary in "$path_dir"/python3.*
-            if not test -x "$binary"
-                continue
-            end
-            set -l name (command basename "$binary")
-            if not string match -qr '^python3\.[0-9]+$' -- "$name"
-                continue
-            end
-            if not contains -- "$binary" $seen
-                set -a seen "$binary"
-                echo "$binary"
-            end
-        end
-    end
-end
-
-function __dt_python_lines
-    set -l rows
-    for binary in (__dt_collect_python_binaries)
-        set -l minor (__python_minor_from_binary "$binary")
-        set -l py_version_value (__python_version_from_binary "$binary")
-        if test -n "$minor"; and test -n "$py_version_value"
-            set -a rows "$minor - $py_version_value"
-        end
-    end
-    set rows (string join \n $rows | sort -n | uniq)
-    if test (count $rows) -eq 0
-        return
-    end
-    echo "   python"
-    set -l total (count $rows)
-    for index in (seq 1 $total)
-        set -l branch "├─"
-        if test $index -eq $total
-            set branch "└─"
-        end
-        echo "    $branch $rows[$index]"
-    end
-end
-
-function __print_section
-    set -l section_color $argv[1]
-    set -l section_title $argv[2]
-    set -l lines $argv[3..-1]
-    if test (count $lines) -eq 0
-        return
-    end
-    echo $section_color$section_title(set_color normal)
-    for line in $lines
-        echo $line
-    end
-end
-
-# Render Dev Tools. Extracted so __dt_reload can call it without re-sourcing
-# the whole file (which triggers auto-render).
 function __dt_render
     set -l muted (set_color brblack)
     set -l title (set_color magenta)
@@ -125,8 +19,6 @@ function __dt_render
     set -l infra_color (set_color brblue)
     set -l normal (set_color normal)
 
-    # Version lines for enabled tools. Straight pipe through Fish builtins.
-    # No eval or bash -c.
     set -l runtime_lines
     set -l package_lines
     set -l python_lines
@@ -244,7 +136,6 @@ function __dt_render
     end
 
     set -l total_lines (math (count $runtime_lines) + (count $package_lines) + (count $python_lines) + (count $system_lines) + (count $infra_lines))
-
     if test $total_lines -eq 0
         return 0
     end
@@ -259,47 +150,7 @@ function __dt_render
     __print_section "$infra_color" "Infrastructure" $infra_lines
 end
 
-# Re-render Dev Tools without restarting the shell.
-# Tracks dev-tools.toml mtime so it only re-renders on actual changes.
-# Called from `dot-files --dev-tools reload`.
-function __dt_reload
-    set -l devtools_file "$__dt_config_file"
-    if not test -f "$devtools_file"
-        echo "dot-files: dev-tools config not found, run: dot-files --dev-tools init" >&2
-        return 1
-    end
-
-    # Only re-render if config changed.
-    set -q __dt_config_file_mtime; or set -U __dt_config_file_mtime 0
-    set -l current_mtime
-    if command -v stat >/dev/null 2>&1
-        # GNU stat (-c) vs BSD/macOS stat (-f). Both return epoch seconds.
-        set current_mtime (stat -c '%Y' "$devtools_file" 2>/dev/null)
-        or set current_mtime (stat -f '%m' "$devtools_file" 2>/dev/null)
-    end
-
-    # All version commands in __dt_render are hardcoded literals, never user input.
-    # Piped through Fish builtins, not eval or bash -c.
-
-    if test -z "$current_mtime"
-        # No stat available, render anyway.
-        __dt_render
-        echo "Dev Tools reloaded."
-        return 0
-    end
-
-    if test "$current_mtime" = "$__dt_config_file_mtime"
-        echo "Dev Tools reloaded (no changes detected)."
-        return 0
-    end
-
-    __dt_render
-    set -U __dt_config_file_mtime "$current_mtime"
-    echo "Dev Tools reloaded."
-end
-
-# Auto-render on direct invocation (zz-fastfetch.fish).
-# Skip when sourced for reload (flag passed by caller).
+# Auto-render on direct invocation. Skip when sourced for reload.
 if not set -q __dt_force_no_auto_render
     __dt_render
 end
