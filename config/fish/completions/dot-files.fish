@@ -6,7 +6,7 @@
 complete -c dot-files -f
 complete -c dot-files -s s -l style -x -a '1 2 3 4 5' -d 'Set separator style (1-5)'
 complete -c dot-files -s c -l color -x -a 'moonlight catppuccin-macchiato catppuccin-mocha' -d 'Set color palette'
-complete -c dot-files -s u -l username -x -d 'Set Fastfetch welcome name ("reset" for system user)'
+complete -c dot-files -s u -l username -x -a 'reset' -d 'Set Fastfetch welcome name ("reset" for system user)'
 
 # Build module completion candidates from __dotfiles_all_modules, excluding core.
 # Must be a single space-separated string for complete -a.
@@ -28,7 +28,7 @@ complete -c dot-files -l list-modules -d 'List modules and their status'
 complete -c dot-files -l doctor -d 'Run read-only sanity checks'
 complete -c dot-files -l status -d 'Show dotfiles git status vs upstream'
 
-complete -c dot-files -l edit -x -a 'style color modules username dev-tools' -d 'Open a preference file in \$EDITOR and rebuild'
+complete -c dot-files -s e -l edit -x -a 'style color modules username dev-tools' -d 'Open a preference file in \$EDITOR and rebuild'
 
 complete -c dot-files -l dev-tools -x -a 'init toggle reload' -d 'Manage the dev-tools config or toggle a tool'
 

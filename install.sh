@@ -104,27 +104,26 @@ resolve_source_dir() {
   if [ ! -t 0 ] && [ -n "$DOTFILES_REPO_URL" ]; then
     :
   else
-    local script_dir
-    script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-    if [ -d "$script_dir/config" ]; then
-      echo "$script_dir"
+    script_dir_resolved=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+    if [ -d "$script_dir_resolved/config" ]; then
+      echo "$script_dir_resolved"
       return
     fi
   fi
 
   if [ -n "$DOTFILES_REPO_URL" ]; then
-    local clone_dir="$HOME/.local/share/dotfiles"
-    info "Cloning from $DOTFILES_REPO_URL to $clone_dir"
-    if [ -d "$clone_dir" ]; then
-      info "Resetting existing clone at $clone_dir"
-      run rm -rf "$clone_dir"
+    clone_dir_resolved="$HOME/.local/share/dotfiles"
+    info "Cloning from $DOTFILES_REPO_URL to $clone_dir_resolved"
+    if [ -d "$clone_dir_resolved" ]; then
+      info "Resetting existing clone at $clone_dir_resolved"
+      run rm -rf "$clone_dir_resolved"
     fi
-    run mkdir -p "$(dirname "$clone_dir")"
-    if ! run git clone --depth 1 "$DOTFILES_REPO_URL" "$clone_dir"; then
+    run mkdir -p "$(dirname "$clone_dir_resolved")"
+    if ! run git clone --depth 1 "$DOTFILES_REPO_URL" "$clone_dir_resolved"; then
       echo "Failed to clone repository from $DOTFILES_REPO_URL" >&2
       exit 1
     fi
-    echo "$clone_dir"
+    echo "$clone_dir_resolved"
     return
   fi
 
@@ -134,75 +133,75 @@ resolve_source_dir() {
 }
 
 backup_path() {
-  local target=$1
+  target_path=$1
 
-  if [ -e "$target" ] || [ -L "$target" ]; then
-    local relative=${target#"$HOME"/}
-    local backup_target="$BACKUP_DIR/$relative"
-    info "Backing up $target -> $backup_target"
-    run mkdir -p "$(dirname "$backup_target")"
-    run mv -- "$target" "$backup_target"
+  if [ -e "$target_path" ] || [ -L "$target_path" ]; then
+    backup_relative=${target_path#"$HOME"/}
+    backup_target_path="$BACKUP_DIR/$backup_relative"
+    info "Backing up $target_path -> $backup_target_path"
+    run mkdir -p "$(dirname "$backup_target_path")"
+    run mv -- "$target_path" "$backup_target_path"
   fi
 }
 
 install_file() {
-  local source=$1
-  local target=$2
+  install_src=$1
+  install_dst=$2
 
-  if [ ! -e "$source" ]; then
-    info "Skipping missing source: $source"
+  if [ ! -e "$install_src" ]; then
+    info "Skipping missing source: $install_src"
     return
   fi
 
-  run mkdir -p "$(dirname "$target")"
-  backup_path "$target"
+  run mkdir -p "$(dirname "$install_dst")"
+  backup_path "$install_dst"
 
   if [ "$INSTALL_MODE" = copy ]; then
-    info "Copying $source -> $target"
-    run cp "$source" "$target"
+    info "Copying $install_src -> $install_dst"
+    run cp "$install_src" "$install_dst"
   else
-    info "Linking $source -> $target"
-    run ln -s "$source" "$target"
+    info "Linking $install_src -> $install_dst"
+    run ln -s "$install_src" "$install_dst"
   fi
 }
 
 install_tree_files() {
-  local source_dir=$1
-  local target_dir=$2
+  tree_source_dir=$1
+  tree_target_dir=$2
 
-  if [ ! -d "$source_dir" ]; then
+  if [ ! -d "$tree_source_dir" ]; then
     return
   fi
 
-  find "$source_dir" -type f | while IFS= read -r source_file; do
-    relative=${source_file#"$source_dir"/}
-    install_file "$source_file" "$target_dir/$relative"
+  find "$tree_source_dir" -type f | while IFS= read -r tree_source_file; do
+    tree_relative=${tree_source_file#"$tree_source_dir"/}
+    install_file "$tree_source_file" "$tree_target_dir/$tree_relative"
   done
 }
 
 write_welcome_name() {
-  local name=$1
-  local target=$2
+  welcome_name=$1
+  welcome_target=$2
 
-  if [ -z "$name" ]; then
+  if [ -z "$welcome_name" ]; then
     return 0
   fi
 
-  info "Setting Fastfetch welcome name: $name"
+  info "Setting Fastfetch welcome name: $welcome_name"
   if is_dry_run; then
-    echo "[dry-run] write welcome name to $target"
+    echo "[dry-run] write welcome name to $welcome_target"
     return 0
   fi
 
-  run mkdir -p "$(dirname "$target")"
-  backup_path "$target"
+  run mkdir -p "$(dirname "$welcome_target")"
+  backup_path "$welcome_target"
   {
     printf '%s\n' \
       '# Fastfetch welcome name (optional).' \
       '# Leave empty (comments only) for system username: Welcome, {user-name}!' \
       '# Or add one display name on its own line below.'
-    printf '%s\n' "$name"
-  } >"$target"
+    printf '%s\n' "$welcome_name"
+  } >"$welcome_target"
 }
 
 SOURCE_DIR=$(resolve_source_dir)
