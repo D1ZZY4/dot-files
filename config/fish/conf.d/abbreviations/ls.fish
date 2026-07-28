@@ -8,15 +8,17 @@ end
 
 # Inline preference reader (avoids autoload dependency at config time).
 function __dotfiles_abbr_read -a file
-    if test -f "$file"
-        while read -l line
-            set -l trimmed (string trim -- $line)
-            if test -n "$trimmed"; and not string match -qr '^#' -- "$trimmed"
-                echo "$trimmed"
-                return 0
-            end
-        end < "$file"
+    if not test -f "$file"
+        return 1
     end
+    while read -l line
+        set -l trimmed (string trim -- $line)
+        if test -n "$trimmed"; and not string match -qr '^#' -- "$trimmed"
+            echo "$trimmed"
+            return 0
+        end
+    end < "$file"
+    return 1
 end
 
 if type -q eza
