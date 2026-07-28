@@ -264,6 +264,60 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                     return 1
             end
 
+        case --ls-style
+            if test (count $argv) -lt 2
+                echo "dot-files: missing ls style number" >&2
+                echo "Use: 1 (grid), 2 (one-per-line), 3 (tree), 5 (git)" >&2
+                return 1
+            end
+            switch $argv[2]
+                case 1 2 3 5
+                    echo "# eza ls output style (1|2|3|5)" > "$starship_dir/ls-style"
+                    echo "$argv[2]" >> "$starship_dir/ls-style"
+                    echo "dot-files: ls style set to $argv[2] ($starship_dir/ls-style)"
+                    echo "Restart shell or exec fish to apply."
+                case '*'
+                    echo "dot-files: unknown ls style '$argv[2]'" >&2
+                    echo "Use: 1 (grid), 2 (one-per-line), 3 (tree), 5 (git)" >&2
+                    return 1
+            end
+
+        case --ll-style
+            if test (count $argv) -lt 2
+                echo "dot-files: missing ll style number" >&2
+                echo "Use: 1, 2, 3 (git), 4 (header+group+iso)" >&2
+                return 1
+            end
+            switch $argv[2]
+                case 1 2 3 4
+                    echo "# eza ll output style (1|2|3|4)" > "$starship_dir/ll-style"
+                    echo "$argv[2]" >> "$starship_dir/ll-style"
+                    echo "dot-files: ll style set to $argv[2] ($starship_dir/ll-style)"
+                    echo "Restart shell or exec fish to apply."
+                case '*'
+                    echo "dot-files: unknown ll style '$argv[2]'" >&2
+                    echo "Use: 1, 2, 3 (git), 4 (header+group+iso)" >&2
+                    return 1
+            end
+
+        case --ls-group
+            if test (count $argv) -lt 2
+                echo "dot-files: missing --ls-group value" >&2
+                echo "Use: on or off" >&2
+                return 1
+            end
+            switch $argv[2]
+                case on off
+                    echo "# Group directories first (on|off)" > "$starship_dir/ls-group"
+                    echo "$argv[2]" >> "$starship_dir/ls-group"
+                    echo "dot-files: ls group-directories-first set to $argv[2]"
+                    echo "Restart shell or exec fish to apply."
+                case '*'
+                    echo "dot-files: unknown value '$argv[2]'" >&2
+                    echo "Use: on or off" >&2
+                    return 1
+            end
+
         case '*'
             echo "dot-files: unknown option '$argv[1]'" >&2
             echo "Run 'dot-files' to see usage."

@@ -29,6 +29,9 @@ complete -c dot-files -l status -d 'Show dotfiles git status vs upstream'
 complete -c dot-files -s e -l edit -x -a 'style color modules username dev-tools' -d 'Open a preference file in \$EDITOR and rebuild'
 
 complete -c dot-files -l dev-tools -x -a 'init toggle reload' -d 'Manage the dev-tools config or toggle a tool'
+complete -c dot-files -l ls-style -x -a '1 2 3 5' -d 'Set eza ls output style'
+complete -c dot-files -l ll-style -x -a '1 2 3 4' -d 'Set eza ll output style'
+complete -c dot-files -l ls-group -x -a 'on off' -d 'Group directories first'
 
 # Dev-tools toggle candidates from __dotfiles_devtools_list, with fallback.
 set -l _dotfiles_devtools_opts

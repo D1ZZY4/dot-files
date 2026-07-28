@@ -1,5 +1,19 @@
 # Abbreviations expand on SPACE/ENTER. Interactive only.
 # Guarded with type checks so missing tools don't break things.
+
+# Inline preference reader (avoids autoload dependency at config time).
+function __dotfiles_abbr_read -a file
+    if test -f "$file"
+        while read -l line
+            set -l trimmed (string trim -- $line)
+            if test -n "$trimmed"; and not string match -qr '^#' -- "$trimmed"
+                echo "$trimmed"
+                return 0
+            end
+        end < "$file"
+    end
+end
+
 if status --is-interactive
 
 if type -q git
@@ -20,8 +34,28 @@ if type -q git
 end
 
 if type -q eza
-    abbr -a ls 'eza --icons'
-    abbr -a ll 'eza -la --icons'
+    # ls/ll style from preference files (set via dot-files --ls-style/--ll-style)
+    set -l __ls_group ""
+    if test (__dotfiles_abbr_read "$HOME/.config/starship/ls-group" ) = "on"
+        set __ls_group "--group-directories-first"
+    end
+
+    switch (__dotfiles_abbr_read "$HOME/.config/starship/ls-style" )
+        case 1; abbr -a ls "eza --icons=always $__ls_group"
+        case 2; abbr -a ls "eza -1 --icons=always $__ls_group"
+        case 3; abbr -a ls "eza --icons=always -T -L=1 $__ls_group"
+        case 5; abbr -a ls "eza --icons=always --git $__ls_group"
+        case '*'; abbr -a ls "eza --icons=always -T -L=1 $__ls_group"
+    end
+
+    switch (__dotfiles_abbr_read "$HOME/.config/starship/ll-style" )
+        case 1; abbr -a ll "eza -la --icons=always $__ls_group"
+        case 2; abbr -a ll "eza -la --icons=always --header $__ls_group"
+        case 3; abbr -a ll "eza -la --icons=always --git $__ls_group"
+        case 4; abbr -a ll "eza -la --icons=always --header --group --time-style=iso $__ls_group"
+        case '*'; abbr -a ll "eza -la --icons=always --git $__ls_group"
+    end
+
     abbr -a lt 'eza --tree --level=2 --icons'
     abbr -a lta 'eza --tree --level=3 --icons -a'
 else if type -q lsd
