@@ -60,7 +60,7 @@ function __dt_collect_python_binaries
         if not test -d "$path_dir"
             continue
         end
-        for binary in "$path_dir"/python3.[0-9]*
+        for binary in "$path_dir"/python3.*
             if not test -x "$binary"
                 continue
             end
