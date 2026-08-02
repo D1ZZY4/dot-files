@@ -28,7 +28,7 @@ function __dt_render
     if __dt_enabled nodejs
         if type -q node
             set -a runtime_lines (__tool_line "" "nodejs" \
-                (node --version 2>/dev/null | string replace -r '^v' '' | string replace '^' 'v' | string collect))
+                (node --version 2>/dev/null | string collect))
         end
     end
     if __dt_enabled deno
@@ -40,7 +40,7 @@ function __dt_render
     if __dt_enabled bun
         if type -q bun
             set -a runtime_lines (__tool_line "" "bun" \
-                (bun --version 2>/dev/null | string replace '^' 'v' | string collect))
+                (bun --version 2>/dev/null | string replace -r '^' 'v' | string collect))
         end
     end
     if __dt_enabled go
@@ -58,20 +58,20 @@ function __dt_render
     if __dt_enabled java
         if type -q java
             set -a runtime_lines (__tool_line "" "java" \
-                (java --version 2>/dev/null | string replace -r '^[^0-9]*([0-9][^ ]*).*' 'v\1' | string collect))
+                (java --version 2>/dev/null | head -n1 | string replace -r '^[^0-9]*([0-9][^ ]*).*' 'v\1' | string collect))
         end
     end
 
     if __dt_enabled npm
         if type -q npm
             set -a package_lines (__tool_line "" "npm" \
-                (npm --version 2>/dev/null | string replace '^' 'v' | string collect))
+                (npm --version 2>/dev/null | string replace -r '^' 'v' | string collect))
         end
     end
     if __dt_enabled pnpm
         if type -q pnpm
             set -a package_lines (__tool_line "" "pnpm" \
-                (pnpm --version 2>/dev/null | string replace '^' 'v' | string collect))
+                (pnpm --version 2>/dev/null | string replace -r '^' 'v' | string collect))
         end
     end
     if __dt_enabled yarn
