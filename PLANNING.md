@@ -9,15 +9,16 @@
 
 ## Section 0: Project State Lock
 
-**Base commit:** `3a600a0` (HEAD of main, already pushed to origin/main)
+**Base commit:** `b863b39` (HEAD of main, already pushed to origin/main)
 **Branch:** main
 **Working tree:** clean (no uncommitted changes)
 
 Recent history:
-- `5273bc0` fix: correctness, portability, quoting, JSON escaping, and docs fixes
-- `d8156d9` feat(fish): apply skill-guided improvements
-- `905db8e` refactor(fish): consolidate dot-files management function (message needs one-word trim: "refactor(fish): consolidate dot-files function")
-- `ef5effa` fix(fish): support NVM_DIR and already-loaded nvm
+- `b863b39` refactor(starship): rename moon_* palette tokens to color_* across all palettes and modules
+- `4582328` docs(claude): add ls style preview architecture and helper reference
+- `fdab523` docs(readme): document ls/ll live style previews in catalog
+- `4c75b4f` feat(fish): add __dotfiles_ls_preview and __dotfiles_ll_preview helpers
+- `95e8fff` refactor(fish): delegate ls/ll previews to helper functions
 
 All syntax checks pass:
 - `bash -n install.sh` returns 0
@@ -34,6 +35,16 @@ The following items are already resolved. Do not redo them.
 - **1.3 dev-tools.fish no longer uses bash -c** — All tool checks use Fish-native `string replace -r` (commit `984c93d`).
 - **1.4 `__command_version` injection documented** — Security invariant noted in dev-tools.fish (commit `bad2042`).
 - **1.5 `__dotfiles_edit_file` caller-visible error paths** — Comment added above helper, guards documented (commit `d8156d9`).
+- **1.6 Prompt preview cache reverted** — Broken due to Fish assoc array key limits (commit `0259133`).
+- **1.7 Starship binary invoked directly** — Uses `command starship` to bypass function shadowing (commit `5f22c71`).
+- **1.8 agents/ directory removed** — Stale directory cleaned up (commit `6af29a2`).
+- **1.9 Interactive guard on abbreviation loader** — Prevents loading in non-interactive sessions (commit `8f038cc`).
+- **1.10 Grep glob expansion fixed in dev-tools** — Prevents invalid tool detection (commit `741c678`).
+- **1.11 Username handler simplified** — Clarified paths guard and system/custom username display (commit `0d87b92`).
+- **1.12 Starship rebuild cache added** — mtime-cached rebuild and prompt preview renders (commit `dbddcf7`).
+- **1.13 Live eza previews for ls/ll styles** — `__dotfiles_ls_preview`/`__dotfiles_ll_preview` helpers with `--color=always`; `__dotfiles_show_catalog` renders live eza output or falls back to text descriptions (commits `7d10b2b`, `95e8fff`, `4c75b4f`).
+- **1.14 ls/ll previews documented** — README and CLAUDE.md updated with preview architecture (commits `fdab523`, `4582328`).
+- **1.15 Palette tokens renamed** — `moon_*` → `color_*` across all 3 palettes and 4 modules (commit `b863b39`).
 - **2.1 `dot-files --edit` for all preference files** — All five targets implemented with post-edit rebuild `__dotfiles_edit_file` + completions.
 - **2.2 `dot-files --doctor`** — Full diagnostic command implemented in `dot-files.fish` with 8 checks.
 - **2.3 `dot-files --status`** — Git status reporting implemented with ahead/behind tracking.
@@ -48,27 +59,20 @@ The following items are already resolved. Do not redo them.
 - **4.2 docs/customization.md updates** — `--edit`, `--dev-tools reload`, `--doctor`, `fish_user_paths` documented.
 - **4.3 README.md updates** — CLI examples include `--doctor`, `--status`, `--edit`, `--dev-tools reload`.
 
-## Section 2: Remaining Tasks (implement in priority order)
+## Section 2: Completed
 
-### 2.1 Remove unused palette colors
-
-**Files:** `config/starship/colors/moonlight.toml`, `catppuccin-macchiato.toml`, `catppuccin-mocha.toml`
-**Change:** Remove `moon_bg1`, `moon_cyan`, `moon_indigo`, `moon_pink` from all three palette files (unreferenced in any module).
-**Acceptance:** Each palette file contains exactly the colors used by modules/*.toml.
-
-### 2.2 Update docs with audit-driven improvements
-
-**File:** `docs/customization.md` (fix "Starry" typo), `docs/installation.md` (add dev-tools.toml to pref table), `docs/fish.md` (verify all flags documented), `README.md` (expand repo-layout tree).
+- **2.1 Remove unused palette colors** — Done in `b863b39`. Also renamed `moon_*` tokens to `color_*` across all 3 palettes and 4 modules. All palette files now contain exactly the colors referenced by `modules/*.toml`.
+- **2.2 Update docs with audit-driven improvements** — Already covered by prior commits: "Starry" typo fixed, `dev-tools.toml` documented in `docs/installation.md` and README pref table, README repo-layout tree expanded, CLI flags (`--doctor`, `--status`, `--ls-style`, `--ll-style`, `--ls-group`) documented. No remaining doc gaps identified.
 
 ---
 
 ## Section 5: Execution Order
 
-**Phase F — Polish (current batch)**
-- Task 2.1: Remove unused palette colors
-- Task 2.2: Documentation touch-ups
+**Phase F — Polish (complete)**
+- Task 2.1: Remove unused palette colors — done in `b863b39`
+- Task 2.2: Documentation touch-ups — covered by prior commits
 
-**Phase E — Validation gate (required before declaring done)**
+**Phase E — Validation gate (run before declaring a release done)**
 1. `bash -n install.sh` returns 0
 2. `fish --command "source <every .fish file>"` returns 0 for every file under config/fish/ and config/fastfetch/
 3. `git status --short` returns empty
