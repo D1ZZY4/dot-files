@@ -64,6 +64,43 @@ function __dotfiles_ll_flags -a style
     end
 end
 
+# Live preview: run eza for a given ls style number. Accepts optional dir arg (default: $HOME).
+# --color=always ensures ANSI colors survive the pipe to sed in the catalog renderer.
+function __dotfiles_ls_preview -a style
+    set -l dir $HOME
+    if set -q argv[2]
+        set dir $argv[2]
+    end
+    set -l group (__dotfiles_ls_group)
+    switch $style
+        case 1; eza --color=always --icons=always $group $dir
+        case 2; eza --color=always -1 --icons=always $group $dir
+        case 3; eza --color=always --icons=always -T -L=1 $group $dir
+        case 4; eza --color=always --icons=always --git --header $group $dir
+        case 5; eza --color=always --icons=always --git $group $dir
+        case 6; eza --color=always --code --icons=always $group $dir
+        case '*'; eza --color=always --icons=always -T -L=1 $group $dir
+    end
+end
+
+# Live preview: run eza for a given ll style number. Accepts optional dir arg (default: $HOME).
+function __dotfiles_ll_preview -a style
+    set -l dir $HOME
+    if set -q argv[2]
+        set dir $argv[2]
+    end
+    set -l group (__dotfiles_ls_group)
+    switch $style
+        case 1; eza --color=always -la --icons=always $group $dir
+        case 2; eza --color=always -la --icons=always --header $group $dir
+        case 3; eza --color=always -la --icons=always --git $group $dir
+        case 4; eza --color=always -la --icons=always --header --group --time-style=iso $group $dir
+        case 5; eza --color=always -la --icons=always --header --git --inode $group $dir
+        case 6; eza --color=always -la --icons=always --git --color-scale=all $group $dir
+        case '*'; eza --color=always -la --icons=always --git $group $dir
+    end
+end
+
 # ---- ls/ll style preview generators ----
 
 function __dotfiles_ls_style_preview -a style
