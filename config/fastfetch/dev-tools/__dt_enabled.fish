@@ -3,8 +3,10 @@ function __dt_enabled
     if test -z "$tool"
         return 1
     end
-    if test -f "$__dt_config_file"; and grep -q "^$tool[ 	]*=[ 	]*false" "$__dt_config_file" 2>/dev/null
-        return 1
+    if test -f "$__dt_config_file"
+        # Quote the regex pattern to prevent Fish glob expansion of [[:space:]].
+        grep -q -- "^$tool"'[[:space:]]*=[[:space:]]*false' "$__dt_config_file" 2>/dev/null
+        and return 1
     end
     return 0
 end

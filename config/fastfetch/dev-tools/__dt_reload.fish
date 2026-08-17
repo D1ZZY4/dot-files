@@ -13,6 +13,7 @@ function __dt_reload
     end
 
     if test -z "$current_mtime"
+        set -e __dt_enabled_map
         __dt_render
         echo "Dev Tools reloaded."
         return 0
@@ -23,6 +24,7 @@ function __dt_reload
         return 0
     end
 
+    set -e __dt_enabled_map
     __dt_render
     set -U __dt_config_file_mtime "$current_mtime"
     echo "Dev Tools reloaded."
