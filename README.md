@@ -72,6 +72,7 @@ login shell before installing.
 - [Fastfetch](https://github.com/fastfetch-cli/fastfetch)
 - Git — for the curl-based and clone-based installs
 - A [Nerd Font](https://www.nerdfonts.com/) terminal font — **FiraCode Nerd Font** recommended ([download FiraCode.zip](https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/FiraCode.zip) · [all releases](https://github.com/ryanoasis/nerd-fonts/releases/latest))
+- [eza](https://github.com/eza-community/eza) — modern `ls` replacement (v0.23.5+ recommended) — used for live `ls`/`ll` previews and enhanced directory listings
 
 > **Install FiraCode Nerd Font (Linux):**
 >
@@ -90,7 +91,6 @@ login shell before installing.
 - Package managers — npm, pnpm, yarn
 - Python interpreters exposed as `python3.x`
 - Tooling — Git, GitHub CLI, Docker, Docker Compose, kubectl
-- `eza` or `lsd` for richer listings (the bundled Fish `ls` fallback is used otherwise)
 
 ## Installation
 

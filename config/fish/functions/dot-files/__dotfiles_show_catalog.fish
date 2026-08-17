@@ -90,19 +90,48 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
     echo ""
     echo "$heading""ls/ll command previews$normal $muted(* = active)$normal"
 
-    echo "  $heading""ls styles$normal"
-    for s in 1 2 3 4 5 6
-        set -l mkr (__dotfiles_active_marker $s $saved_ls)
-        echo "  $mkr$s "(__dotfiles_ls_style_preview $s)
+    if type -q eza
+        echo "  $heading""ls styles$normal"
+        for s in 1 2 3 4 5 6
+            set -l mkr (__dotfiles_active_marker $s $saved_ls)
+            echo "  $mkr$s "
+            set -lx STARSHIP_STYLE_PREVIEW $s
+            set -lx STARSHIP_COLOR_PREVIEW $saved_color
+            __dotfiles_rebuild_quiet
+            eza --icons=always (__dotfiles_ls_group) (__dotfiles_ls_flags $s) --color=always $HOME 2>/dev/null | sed 's/^/    /'
+        end
+
+        echo ""
+        echo "  $heading""ll styles$normal"
+        for s in 1 2 3 4 5 6
+            set -l mkr (__dotfiles_active_marker $s $saved_ll)
+            echo "  $mkr$s "
+            set -lx STARSHIP_STYLE_PREVIEW $s
+            set -lx STARSHIP_COLOR_PREVIEW $saved_color
+            __dotfiles_rebuild_quiet
+            eza -la --icons=always (__dotfiles_ls_group) (__dotfiles_ll_flags $s) --color=always $HOME 2>/dev/null | sed 's/^/    /'
+        end
+
+        set -e STARSHIP_STYLE_PREVIEW
+        set -e STARSHIP_COLOR_PREVIEW
+        __dotfiles_rebuild_quiet
+    else
+        echo "  $heading""ls styles$normal $muted(install eza to see previews)$normal"
+        for s in 1 2 3 4 5 6
+            set -l mkr (__dotfiles_active_marker $s $saved_ls)
+            echo "  $mkr$s "(__dotfiles_ls_style_preview $s)
+        end
+
+        echo ""
+        echo "  $heading""ll styles$normal $muted(install eza to see previews)$normal"
+        for s in 1 2 3 4 5 6
+            set -l mkr (__dotfiles_active_marker $s $saved_ll)
+            echo "  $mkr$s "(__dotfiles_ll_style_preview $s)
+        end
     end
 
-    echo "  $heading""ll styles$normal"
-    for s in 1 2 3 4 5 6
-        set -l mkr (__dotfiles_active_marker $s $saved_ll)
-        echo "  $mkr$s "(__dotfiles_ll_style_preview $s)
-    end
-
-    echo "  $heading""ls group$normal"
+    echo ""
+    echo "$heading""ls group$normal"
     if test "$saved_lsgrp" = on
         echo "  "(set_color green)"*"(set_color normal)"on   --group-directories-first"
         echo "   off  (default, no grouping)"

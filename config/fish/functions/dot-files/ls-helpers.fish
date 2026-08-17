@@ -39,6 +39,31 @@ function __dotfiles_ll_cmd
     end
 end
 
+# Return eza flags (no command) for a given ls style number — used by catalog previews.
+function __dotfiles_ls_flags -a style
+    switch $style
+        case 1; echo ""
+        case 2; echo "-1"
+        case 3; echo "-T -L=1"
+        case 4; echo "--git --header"
+        case 5; echo "--git"
+        case 6; echo "--code"
+        case '*'; echo "-T -L=1"
+    end
+end
+
+function __dotfiles_ll_flags -a style
+    switch $style
+        case 1; echo ""
+        case 2; echo "--header"
+        case 3; echo "--git"
+        case 4; echo "--header --group --time-style=iso"
+        case 5; echo "--header --git --inode"
+        case 6; echo "--git --color-scale=all"
+        case '*'; echo "--git"
+    end
+end
+
 # ---- ls/ll style preview generators ----
 
 function __dotfiles_ls_style_preview -a style

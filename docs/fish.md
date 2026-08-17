@@ -2,6 +2,13 @@
 
 This repository targets **Fish only**. Configuration is split into `conf.d` startup files and autoloaded `functions/`.
 
+## Requirements
+
+- [Fish shell](https://fishshell.com/)
+- [Starship](https://starship.rs/)
+- [Fastfetch](https://github.com/fastfetch-cli/fastfetch)
+- [eza](https://github.com/eza-community/eza) — modern `ls` replacement (**v0.23.5+** recommended) — required for `ls`/`ll` live previews and enhanced directory listings
+
 ## Startup files
 
 ```text

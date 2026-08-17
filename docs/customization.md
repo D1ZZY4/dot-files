@@ -2,6 +2,13 @@
 
 This setup is edited in small, focused modules. Prefer the preference files below for everyday changes; edit TOML or Fish sources when you need deeper control.
 
+## Requirements
+
+- [Fish shell](https://fishshell.com/)
+- [Starship](https://starship.rs/)
+- [Fastfetch](https://github.com/fastfetch-cli/fastfetch)
+- [eza](https://github.com/eza-community/eza) — modern `ls` replacement (**v0.23.5+** recommended) — required for `ls`/`ll` live previews in `dot-files` and enhanced directory listings
+
 ## Preference files
 
 Three plain-text files control the most common options. Each supports `#` comments. After editing, apply changes as noted.

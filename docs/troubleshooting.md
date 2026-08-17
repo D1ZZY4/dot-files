@@ -1,5 +1,21 @@
 # Troubleshooting
 
+## ls/ll previews show "(install eza to see previews)"
+
+[eza](https://github.com/eza-community/eza) is required for live `ls`/`ll` previews in `dot-files`.
+
+Install the latest version (v0.23.5+ recommended):
+
+```sh
+# CachyOS / Arch
+sudo pacman -S eza
+
+# or via cargo
+cargo install eza
+```
+
+Then run `dot-files` to see live eza output previews for all six `ls` and six `ll` styles.
+
 ## Icons render as boxes
 
 Install and select a Nerd Font (FiraCode Nerd Font, JetBrainsMono Nerd Font, Hack Nerd Font, etc.), then restart the terminal.
