@@ -95,10 +95,7 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
         for s in 1 2 3 4 5 6
             set -l mkr (__dotfiles_active_marker $s $saved_ls)
             echo "  $mkr$s "
-            set -lx STARSHIP_STYLE_PREVIEW $s
-            set -lx STARSHIP_COLOR_PREVIEW $saved_color
-            __dotfiles_rebuild_quiet
-            eza --icons=always (__dotfiles_ls_group) (__dotfiles_ls_flags $s) --color=always $HOME 2>/dev/null | sed 's/^/    /'
+            __dotfiles_ls_preview $s 2>&1 | sed 's/^/    /'
         end
 
         echo ""
@@ -106,15 +103,8 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
         for s in 1 2 3 4 5 6
             set -l mkr (__dotfiles_active_marker $s $saved_ll)
             echo "  $mkr$s "
-            set -lx STARSHIP_STYLE_PREVIEW $s
-            set -lx STARSHIP_COLOR_PREVIEW $saved_color
-            __dotfiles_rebuild_quiet
-            eza -la --icons=always (__dotfiles_ls_group) (__dotfiles_ll_flags $s) --color=always $HOME 2>/dev/null | sed 's/^/    /'
+            __dotfiles_ll_preview $s 2>&1 | sed 's/^/    /'
         end
-
-        set -e STARSHIP_STYLE_PREVIEW
-        set -e STARSHIP_COLOR_PREVIEW
-        __dotfiles_rebuild_quiet
     else
         echo "  $heading""ls styles$normal $muted(install eza to see previews)$normal"
         for s in 1 2 3 4 5 6
