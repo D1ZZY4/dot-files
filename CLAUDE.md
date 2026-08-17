@@ -76,6 +76,30 @@ Everyday options are plain-text files, `#` = comment, first non-comment line is 
 - Python discovered from executables named `python3.x` via `__dt_python_lines`/`__dt_collect_python_binaries`.
 - Adding a tool: `__tool_line` entry in the matching section + key in `dev-tools.toml` init template + `__dotfiles_devtools_list`.
 
+### ls style previews
+
+`config/fish/functions/dot-files/ls-helpers.fish` provides the live preview pipeline for
+`ls-style` (1–6) and `ll-style` (1–6). The key insight: Fish command substitution
+`(echo "--git --header")` yields a single array element, not separate arguments, so the
+preview helpers call `eza` directly inside `switch`/`case` blocks rather than echo-ing a
+command string for later eval.
+
+- `__dotfiles_ls_preview <style> [dir]` — runs eza with the matching flags; `--color=always`
+  preserves ANSI colors through the `sed` pipe in the catalog renderer.
+- `__dotfiles_ll_preview <style> [dir]` — same for long-form listings.
+- `__dotfiles_ls_flags` / `__dotfiles_ll_flags` — return only the flags for a given style
+  number, used by the no-eza text preview path.
+- `__dotfiles_ls_style_preview` / `__dotfiles_ll_style_preview` — text description lines
+  used when eza is not installed.
+- `__dotfiles_ls_group` — returns `--group-directories-first` when `ls-group` is `on`,
+  nothing otherwise.
+- `__dotfiles_ls_cmd` / `__dotfiles_ll_cmd` — echo the full eza command string for the
+  active style, consumed by the `ls`/`ll` abbreviations.
+
+`__dotfiles_show_catalog` renders live previews: if eza is on PATH, it pipes each
+`__dotfiles_*_preview` through `sed 's/^/    /'` for indented colored output; otherwise it
+falls back to the text description.
+
 ### ls fallback
 
 `functions/ls.fish` wraps `ls`: eza → lsd → bundled icon-aware fallback (GNU-flags parser, `__ls_*` helpers). `dot-files --ls-style/--ll-style/--ls-group` only affect the eza-based `ls`/`ll` abbreviations, not the fallback.
