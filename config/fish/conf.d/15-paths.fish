@@ -4,7 +4,7 @@
 # Interactive only: PATH inherits from login shell.
 
 if status --is-interactive
-    # Create if not already set.
+    # Lazy-init: skip if already populated (avoids resetting user's list on re-source).
     set -q fish_user_paths; or set -U fish_user_paths
 
 # ── Common PATH entries ────────────────────────────────────────────────
