@@ -45,30 +45,35 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
     echo "  $username_file"
     echo "  $modules_file"
     echo ""
-    echo "$heading""Styles$normal $muted(real prompt from your shell * = active)$normal"
+    if type -q starship
+        echo "$heading""Styles$normal $muted(real prompt from your shell * = active)$normal"
 
-    for style_check in 1 2 3 4 5
-        set -lx STARSHIP_STYLE_PREVIEW $style_check
-        set -lx STARSHIP_COLOR_PREVIEW $saved_color
+        for style_check in 1 2 3 4 5
+            set -lx STARSHIP_STYLE_PREVIEW $style_check
+            set -lx STARSHIP_COLOR_PREVIEW $saved_color
+            __dotfiles_rebuild_quiet
+            set -l marker (__dotfiles_active_marker $style_check $saved_style)
+            __dotfiles_print_prompt_preview "$marker$style_check"
+        end
+
+        echo ""
+        echo "$heading""Colors$normal $muted(style 5 real prompt * = active)$normal"
+
+        for color_check in moonlight catppuccin-macchiato catppuccin-mocha
+            set -lx STARSHIP_STYLE_PREVIEW 5
+            set -lx STARSHIP_COLOR_PREVIEW $color_check
+            __dotfiles_rebuild_quiet
+            set -l marker (__dotfiles_active_marker $color_check $saved_color)
+            __dotfiles_print_prompt_preview "$marker$color_check"
+        end
+
+        set -e STARSHIP_STYLE_PREVIEW
+        set -e STARSHIP_COLOR_PREVIEW
         __dotfiles_rebuild_quiet
-        set -l marker (__dotfiles_active_marker $style_check $saved_style)
-        __dotfiles_print_prompt_preview "$marker$style_check"
+    else
+        echo "$heading""Styles$normal $muted(install starship to see previews)$normal"
+        echo "$heading""Colors$normal $muted(install starship to see previews)$normal"
     end
-
-    echo ""
-    echo "$heading""Colors$normal $muted(style 5 real prompt * = active)$normal"
-
-    for color_check in moonlight catppuccin-macchiato catppuccin-mocha
-        set -lx STARSHIP_STYLE_PREVIEW 5
-        set -lx STARSHIP_COLOR_PREVIEW $color_check
-        __dotfiles_rebuild_quiet
-        set -l marker (__dotfiles_active_marker $color_check $saved_color)
-        __dotfiles_print_prompt_preview "$marker$color_check"
-    end
-
-    set -e STARSHIP_STYLE_PREVIEW
-    set -e STARSHIP_COLOR_PREVIEW
-    __dotfiles_rebuild_quiet
 
     echo ""
     echo "$heading""Fastfetch welcome$normal"
