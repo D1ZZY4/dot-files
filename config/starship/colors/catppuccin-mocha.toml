@@ -1,12 +1,12 @@
-# Catppuccin Mocha palette (same moon_* tokens as moonlight).
+# Catppuccin Mocha palette.
 [palettes.catppuccin-mocha]
-moon_fg = "#cdd6f4"
-moon_bg0 = "#1e1e2e"
-moon_bg3 = "#313244"
-moon_blue = "#89b4fa"
-moon_sky = "#89dceb"
-moon_teal = "#94e2d5"
-moon_green = "#a6e3a1"
-moon_purple = "#cba6f7"
-moon_yellow = "#f9e2af"
-moon_red = "#f38ba8"
+color_fg = "#cdd6f4"
+color_bg0 = "#1e1e2e"
+color_bg3 = "#313244"
+color_blue = "#89b4fa"
+color_sky = "#89dceb"
+color_teal = "#94e2d5"
+color_green = "#a6e3a1"
+color_purple = "#cba6f7"
+color_yellow = "#f9e2af"
+color_red = "#f38ba8"

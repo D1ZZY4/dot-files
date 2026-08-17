@@ -1,13 +1,13 @@
 # Git capsules.
 [git_branch]
 symbol = ""
-style = "bg:moon_teal fg:moon_bg0"
-format = "[@LEFT@](moon_teal)[ $symbol $branch $git_commit ](fg:moon_bg0 bg:moon_teal)[@RIGHT@ ](fg:moon_teal)"
+style = "bg:color_teal fg:color_bg0"
+format = "[@LEFT@](color_teal)[ $symbol $branch $git_commit ](fg:color_bg0 bg:color_teal)[@RIGHT@ ](fg:color_teal)"
 truncation_length = 32
 truncation_symbol = "…"
 
 [git_status]
-style = "fg:moon_teal"
+style = "fg:color_teal"
 format = "[$all_status$ahead_behind]($style)"
 conflicted = "󰞇 "
 ahead = "⇡${count} "

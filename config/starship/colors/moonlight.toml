@@ -1,12 +1,12 @@
-# Moonlight palette. Tokens used as fg:moon_* / bg:moon_* in modules.
+# Moonlight palette. Tokens used as fg:color_* / bg:color_* in modules.
 [palettes.moonlight]
-moon_fg = "#c8d3f5"
-moon_bg0 = "#131421"
-moon_bg3 = "#2f334d"
-moon_blue = "#7cafff"
-moon_sky = "#60bdff"
-moon_teal = "#3ad7c7"
-moon_green = "#c3e88d"
-moon_purple = "#c4a2ff"
-moon_yellow = "#ffc777"
-moon_red = "#ff757f"
+color_fg = "#c8d3f5"
+color_bg0 = "#131421"
+color_bg3 = "#2f334d"
+color_blue = "#7cafff"
+color_sky = "#60bdff"
+color_teal = "#3ad7c7"
+color_green = "#c3e88d"
+color_purple = "#c4a2ff"
+color_yellow = "#ffc777"
+color_red = "#ff757f"

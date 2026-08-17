@@ -1,11 +1,11 @@
 # Directory segment.
 [directory]
-style = "fg:moon_bg0 bg:moon_purple"
+style = "fg:color_bg0 bg:color_purple"
 format = "[ $path ]($style)"
 truncation_length = 3
 truncation_symbol = "…/"
 read_only = " 󰌾"
-read_only_style = "fg:moon_red bg:moon_purple"
+read_only_style = "fg:color_red bg:color_purple"
 home_symbol = " ~"
 
 [directory.substitutions]

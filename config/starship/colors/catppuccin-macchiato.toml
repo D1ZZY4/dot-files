@@ -1,12 +1,12 @@
-# Catppuccin Macchiato palette (same moon_* tokens as moonlight).
+# Catppuccin Macchiato palette.
 [palettes.catppuccin-macchiato]
-moon_fg = "#cad3f5"
-moon_bg0 = "#181926"
-moon_bg3 = "#363a4f"
-moon_blue = "#8aadf4"
-moon_sky = "#91d7e3"
-moon_teal = "#8bd5ca"
-moon_green = "#a6da95"
-moon_purple = "#c6a0f6"
-moon_yellow = "#eed49f"
-moon_red = "#ed8796"
+color_fg = "#cad3f5"
+color_bg0 = "#181926"
+color_bg3 = "#363a4f"
+color_blue = "#8aadf4"
+color_sky = "#91d7e3"
+color_teal = "#8bd5ca"
+color_green = "#a6da95"
+color_purple = "#c6a0f6"
+color_yellow = "#eed49f"
+color_red = "#ed8796"

@@ -4,13 +4,13 @@ command_timeout = 900
 palette = "@PALETTE@"
 
 format = """
-[@LEFT@](moon_blue)$os$username[](fg:moon_blue bg:moon_purple)$directory[@RIGHT@ ](fg:moon_purple)$git_branch$git_status$c$cpp$rust$golang$nodejs$bun$php$java$kotlin$haskell$python$docker_context$conda$pixi$line_break$character"""
+[@LEFT@](color_blue)$os$username[](fg:color_blue bg:color_purple)$directory[@RIGHT@ ](fg:color_purple)$git_branch$git_status$c$cpp$rust$golang$nodejs$bun$php$java$kotlin$haskell$python$docker_context$conda$pixi$line_break$character"""
 
 right_format = """$time"""
 
 [os]
 disabled = false
-style = "bg:moon_blue fg:moon_bg0"
+style = "bg:color_blue fg:color_bg0"
 format = "[ $symbol ]($style)"
 
 [os.symbols]
@@ -41,19 +41,19 @@ CachyOS = "󰣇"
 
 [username]
 show_always = true
-style_user = "bg:moon_blue fg:moon_bg0"
-style_root = "bg:moon_blue fg:moon_bg0"
+style_user = "bg:color_blue fg:color_bg0"
+style_root = "bg:color_blue fg:color_bg0"
 format = "[$user ]($style)"
 
 [hostname]
 ssh_only = true
 format = "[@$hostname ]($style)"
-style = "bg:moon_blue fg:moon_bg0"
+style = "bg:color_blue fg:color_bg0"
 
 [time]
 disabled = false
 time_format = "%R"
-style = "fg:moon_fg"
+style = "fg:color_fg"
 format = "[ $time]($style)"
 
 [line_break]
@@ -61,25 +61,25 @@ disabled = false
 
 [character]
 disabled = false
-success_symbol = "[](bold fg:moon_green)"
-error_symbol = "[](bold fg:moon_red)"
-vimcmd_symbol = "[](bold fg:moon_green)"
-vimcmd_replace_one_symbol = "[](bold fg:moon_purple)"
-vimcmd_replace_symbol = "[](bold fg:moon_purple)"
-vimcmd_visual_symbol = "[](bold fg:moon_yellow)"
+success_symbol = "[](bold fg:color_green)"
+error_symbol = "[](bold fg:color_red)"
+vimcmd_symbol = "[](bold fg:color_green)"
+vimcmd_replace_one_symbol = "[](bold fg:color_purple)"
+vimcmd_replace_symbol = "[](bold fg:color_purple)"
+vimcmd_visual_symbol = "[](bold fg:color_yellow)"
 
 [jobs]
 symbol = " "
-style = "bold moon_blue"
+style = "bold color_blue"
 
 [status]
 disabled = true
 symbol = "✘ "
 format = "[$symbol$status]($style) "
-style = "bold moon_red"
+style = "bold color_red"
 
 [cmd_duration]
 disabled = true
 min_time = 1200
 format = "[󱎫 $duration]($style) "
-style = "moon_yellow"
+style = "color_yellow"
