@@ -44,7 +44,6 @@ files and a single `dot-files` command - no hardcoded usernames or machine-speci
 - **Fastfetch summary** - a startup overview.
 - **One command to rule them** - `dot-files` adjusts styles, colors, and modules.
 - **Preference-driven** - everyday options live in simple text files; source files stay untouched.
-- **Icon-aware `ls` fallback** - graceful listings even without `eza` or `lsd`.
 - **Safe installer** - backup, symlink, copy, dry-run, and curl-based installation.
 
 ## Shell support
@@ -72,7 +71,6 @@ login shell before installing.
 - [Fastfetch](https://github.com/fastfetch-cli/fastfetch)
 - Git - for the curl-based and clone-based installs
 - A [Nerd Font](https://www.nerdfonts.com/) terminal font - **FiraCode Nerd Font** recommended ([download FiraCode.zip](https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/FiraCode.zip) · [all releases](https://github.com/ryanoasis/nerd-fonts/releases/latest))
-- [eza](https://github.com/eza-community/eza) - modern `ls` replacement (v0.23.5+ recommended) - used for live `ls`/`ll` previews and enhanced directory listings
 
 > **Install FiraCode Nerd Font (Linux):**
 >
@@ -203,10 +201,6 @@ ls styles   (* = active)
   ...
 ```
 
-`eza` (v0.23.5+) is required for the live colored previews. Without eza, the catalog shows the
-command line for each style instead. The `ls`/`ll` abbreviations always prefer eza when it is
-installed, falling back to `lsd` and then to a bundled icon-aware GNU ls parser.
-
 ## Prompt styles
 
 Style **5** is the default. Switch with `dot-files --style <n>`.
@@ -272,7 +266,6 @@ fish ~/.config/starship/build.fish
 │   │       ├── dotfiles-read-modules.fish
 │   │       ├── dotfiles-read-setting.fish
 │   │       ├── fastfetch-apply-welcome.fish
-│   │       ├── ls.fish
 │   │       └── nvm.fish
 │   └── starship/
 │       ├── build.fish      # merges modules/*.toml + colors/*.toml

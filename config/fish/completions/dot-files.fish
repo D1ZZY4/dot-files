@@ -27,6 +27,3 @@ complete -c dot-files -l doctor -d 'Run read-only sanity checks'
 complete -c dot-files -l status -d 'Show dotfiles git status vs upstream'
 
 complete -c dot-files -s e -l edit -x -a 'style color modules username' -d 'Open a preference file in \$EDITOR and rebuild'
-complete -c dot-files -l ls-style -x -a '1 2 3 4 5 6' -d 'Set eza ls output style'
-complete -c dot-files -l ll-style -x -a '1 2 3 4 5 6' -d 'Set eza ll output style'
-complete -c dot-files -l ls-group -x -a 'on off' -d 'Group directories first'

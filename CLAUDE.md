@@ -52,7 +52,6 @@ Everyday options are plain-text files, `#` = comment, first non-comment line is 
 | `color` | palette name (`moonlight` \| `catppuccin-macchiato` \| `catppuccin-mocha`) |
 | `username` | Fastfetch welcome name; empty = system username |
 | `modules.conf` | enabled Starship modules |
-| `ls-style`, `ll-style`, `ls-group` | eza output styles |
 
 ### Fish load order and conventions
 
@@ -60,40 +59,12 @@ Everyday options are plain-text files, `#` = comment, first non-comment line is 
 - Starship init is **deferred to first prompt** via `__starship_init --on-event fish_prompt` guard (avoids spawning Rust binary on every shell start). Uses `command starship` to bypass function shadowing.
 - Fastfetch runs **backgrounded** (`begin ... end &`) in `zz-fastfetch.fish` so it doesn't slow shell startup.
 - PATH: `conf.d/15-paths.fish` initializes universal `fish_user_paths` - never hardcode paths in config, tool dirs are added via `set -U`.
-- **Subdirectory helper pattern** (Fish autoloads only direct children of `functions/`): each function dir sources sibling `*.fish` helpers explicitly at load time. Same pattern in `functions/dot-files/` (17 `__dotfiles_*` helpers) and `functions/ls/` (icon helpers).
+- **Subdirectory helper pattern** (Fish autoloads only direct children of `functions/`): each function dir sources sibling `*.fish` helpers explicitly at load time. Same pattern in `functions/dot-files/` (17 `__dotfiles_*` helpers).
 - `functions/dot-files.fish` is the main `dot-files` CLI dispatcher (switch on `$argv[1]`).
 
 ### dot-files command
 
-`dot-files` (Fish function + completions) manages everything: `--style`, `--color`, `--username`, `--enable-module`/`--disable-module`/`--list-modules`, `--edit style|color|modules|username`, `--ls-style`, `--ll-style`, `--ls-group`, `--doctor`, `--status`. Post-change rebuild: `fish "$build_fish"` + preview block.
-
-### ls style previews
-
-`config/fish/functions/dot-files/ls-helpers.fish` provides the live preview pipeline for
-`ls-style` (1–6) and `ll-style` (1–6). The key insight: Fish command substitution
-`(echo "--git --header")` yields a single array element, not separate arguments, so the
-preview helpers call `eza` directly inside `switch`/`case` blocks rather than echo-ing a
-command string for later eval.
-
-- `__dotfiles_ls_preview <style> [dir]` - runs eza with the matching flags; `--color=always`
-  preserves ANSI colors through the `sed` pipe in the catalog renderer.
-- `__dotfiles_ll_preview <style> [dir]` - same for long-form listings.
-- `__dotfiles_ls_flags` / `__dotfiles_ll_flags` - return only the flags for a given style
-  number, used by the no-eza text preview path.
-- `__dotfiles_ls_style_preview` / `__dotfiles_ll_style_preview` - text description lines
-  used when eza is not installed.
-- `__dotfiles_ls_group` - returns `--group-directories-first` when `ls-group` is `on`,
-  nothing otherwise.
-- `__dotfiles_ls_cmd` / `__dotfiles_ll_cmd` - echo the full eza command string for the
-  active style, consumed by the `ls`/`ll` abbreviations.
-
-`__dotfiles_show_catalog` renders live previews: if eza is on PATH, it pipes each
-`__dotfiles_*_preview` through `sed 's/^/    /'` for indented colored output; otherwise it
-falls back to the text description.
-
-### ls fallback
-
-`functions/ls.fish` wraps `ls`: eza → lsd → bundled icon-aware fallback (GNU-flags parser, `__ls_*` helpers). `dot-files --ls-style/--ll-style/--ls-group` only affect the eza-based `ls`/`ll` abbreviations, not the fallback.
+`dot-files` (Fish function + completions) manages everything: `--style`, `--color`, `--username`, `--enable-module`/`--disable-module`/`--list-modules`, `--edit style|color|modules|username`, `--doctor`, `--status`. Post-change rebuild: `fish "$build_fish"` + preview block.
 
 ### nvm wrapper
 

@@ -7,8 +7,6 @@ This repository targets **Fish only**. Configuration is split into `conf.d` star
 - [Fish shell](https://fishshell.com/)
 - [Starship](https://starship.rs/)
 - [Fastfetch](https://github.com/fastfetch-cli/fastfetch)
-- [eza](https://github.com/eza-community/eza) - modern `ls` replacement (**v0.23.5+** recommended) - required for `ls`/`ll` live previews and enhanced directory listings
-
 ## Startup files
 
 ```text
@@ -33,7 +31,6 @@ The loader `30-abbreviations.fish` sources them all automatically.
 
 ```text
 config/fish/conf.d/abbreviations/
-├── ls.fish                   # ls/ll/l/la/lt/lta/ld/lf/l./lx/lh/li/lo/lg/lgr/lgs/loc/lc/lk
 ├── git.fish                  # g/gst/glog/gd/ga/gc/gp/gpl/gstash/gsw/…
 ├── docker.fish               # d/dco/dps/dcu/dcd
 ├── kubectl.fish              # k/kx/kl/kctx/kns
@@ -48,32 +45,6 @@ To add a new abbreviation, create a new `abbreviations/<name>.fish` file.
 ## Abbreviation Reference
 
 All abbreviations expand on SPACE or ENTER in interactive sessions.
-
-### ls - eza / lsd
-
-When **eza** is installed, activated via style system:
-
-| Abbrev | Default command | Description |
-|--------|----------------|-------------|
-| `ls` | *style-dependent* | Grid (\#1), one-per-line (\#2), tree (\#3), git+header (\#4), git (\#5), loc (\#6) |
-| `ll` | *style-dependent* | Default (\#1), header (\#2), git (\#3), header+group+iso (\#4), inode (\#5), color-scale (\#6) |
-| `l` | `eza -1 --icons` | One entry per line |
-| `la` | `eza -la --icons` | All files (including hidden) long format |
-| `ld` | `eza -D --icons` | Directories only |
-| `lf` | `eza -f --icons` | Files only (show symlinks) |
-| `l.` | `eza -la -I='[!.]*' --icons` | Hidden files only |
-| `lx` | `eza -x --icons` | Grid sorted horizontally (across, then down) |
-| `lt` | `eza --tree --level=2 --icons` | Tree view, 2 levels |
-| `lta` | `eza --tree --level=3 --icons -a` | Tree view, 3 levels, show hidden |
-| `lh` | `eza -la --header --icons` | Long with column headers |
-| `li` | `eza -la --inode --icons` | Show inode numbers |
-| `lo` | `eza -la --octal-permissions --icons` | Octal permissions |
-| `lg` | `eza -la --git --icons` | Git status per file |
-| `lgr` | `eza --git-repos --icons` | Git repository summary (branch, status) |
-| `lgs` | `eza -la --git --smart-group --time-style=iso` | Git + owner group + ISO timestamps |
-| `loc` | `eza --code --icons` | Lines-of-code summary by language |
-| `lc` | `eza --color-scale=all --icons` | Age/size highlighted with color gradient |
-| `lk` | `eza --hyperlink=always --icons` | Clickable terminal hyperlinks |
 
 ### git
 
@@ -165,27 +136,11 @@ config/fish/functions/
 
 | Function | Description |
 |----------|-------------|
-| `dot-files` | Manage style, color, welcome name, modules, diagnostics, and ls/ll styles |
+| `dot-files` | Manage style, color, welcome name, modules, and diagnostics |
 | `fastfetch-apply-welcome` | Sync `starship/username` into Fastfetch `config.jsonc` |
 | `dotfiles-read-setting` | Read the first non-comment line from a preference file |
 | `dotfiles-read-modules` | Read every non-comment line from a preference file |
-| `ls` | Icon-aware listing when `eza` / `lsd` are unavailable |
 | `nvm` | Node Version Manager helper |
-
-### ls fallback (when eza/lsd not installed)
-
-The `ls` function in `functions/ls.fish` delegates to `eza` / `lsd` if one of them is available.
-If neither is installed, it runs an icon-aware fallback using `functions/ls/*.fish` helpers:
-
-| Helper | Purpose |
-|--------|---------|
-| `__ls_entries` | List directory entries (handles -a/-A) |
-| `__ls_full_path` | Resolve relative path to absolute |
-| `__ls_icon` | Nerd Font icon mapping (~90 file types and directory names) |
-| `__ls_column_icons` | Grid/column display (supports -1 for one-per-line) |
-| `__ls_long_icons` | Long-format display with stat, symlink targets |
-
-The fallback parses combined flags (`-la`, `-lA`, `-laF`, `-1`, `-R`, `-d`, `-F`, `-r`, `-t`, `-S`) and passes unknown flags to `command ls`.
 
 ## Fastfetch startup
 
@@ -193,7 +148,7 @@ The fallback parses combined flags (`-la`, `-lA`, `-laF`, `-1`, `-R`, `-d`, `-F`
 
 ## dot-files command reference
 
-Run `dot-files` with no arguments to see active settings, live prompt style/color previews, **and ls/ll command previews**.
+Run `dot-files` with no arguments to see active settings and live prompt style/color previews.
 
 ```fish
 dot-files                              # usage, active settings, previews
@@ -212,33 +167,7 @@ dot-files --disable-module file-icons
 dot-files --doctor                     # run diagnostics
 dot-files --status                     # show dotfiles git status
 
-# ls/ll style system
-dot-files --ls-style 1|2|3|4|5|6      # set eza ls output style
-dot-files --ll-style 1|2|3|4|5|6      # set eza ll output style
-dot-files --ls-group on|off            # toggle group-directories-first
 ```
-
-### ls style reference
-
-| Style | Command | Description |
-|-------|---------|-------------|
-| 1 (grid) | `eza --icons --group-dirs-first` | Default grid layout |
-| 2 (one-per-line) | `eza -1 --icons` | One file per line |
-| 3 (tree) | `eza -T -L=1 --icons` | Single-level tree |
-| 4 (git+header) | `eza --git --header --icons` | Git status + column header |
-| 5 (git) | `eza --git --icons` | Git status |
-| 6 (loc) | `eza --code --icons` | Lines-of-code summary |
-
-### ll style reference
-
-| Style | Command | Description |
-|-------|---------|-------------|
-| 1 (default) | `eza -la --icons` | Standard long format |
-| 2 (header) | `eza -la --header --icons` | Long with column headers |
-| 3 (git) | `eza -la --git --icons` | Long + git status |
-| 4 (header+group+iso) | `eza -la --header --group --time-style=iso` | Headers, group, ISO dates |
-| 5 (inode) | `eza -la --header --git --inode` | Inode + git + headers |
-| 6 (color-scale) | `eza -la --git --color-scale=all` | Git + age/size gradient |
 
 ### --edit workflow
 
