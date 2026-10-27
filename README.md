@@ -189,18 +189,6 @@ Leave `username` empty (comments only) to use your **system username**
 (`Welcome, {user-name}!`). Add a single line such as `Alex` for a custom title, then run
 `fastfetch-apply-welcome` or open a new Fish session.
 
-## `ls` / `ll` style previews
-
-Run `dot-files` with no arguments to see live `ls` and `ll` output samples for every style.
-
-```text
-ls styles   (* = active)
-  1  [grid preview with icons]
-  2  [one-per-line preview]
-  3  [tree preview]
-  ...
-```
-
 ## Prompt styles
 
 Style **5** is the default. Switch with `dot-files --style <n>`.
