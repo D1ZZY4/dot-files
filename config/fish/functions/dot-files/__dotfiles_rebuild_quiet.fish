@@ -14,14 +14,17 @@ function __dotfiles_rebuild_quiet
     end
     # Skip cache when preview env vars are active (catalog previews).
     if set -q STARSHIP_STYLE_PREVIEW; or set -q STARSHIP_COLOR_PREVIEW
-        fish "$build_fish" >/dev/null 2>&1
+        source "$build_fish" >/dev/null 2>&1
         return
     end
     # Only rebuild if source prefs changed since last build.
-    set -l current_hash (cat "$HOME/.config/starship"/{style,color,modules.conf} 2>/dev/null | string collect | sha256sum 2>/dev/null | cut -d' ' -f1; or echo "")
+    # Fingerprint the three pref files directly (no cat/cut, no brace
+    # expansion - fish has none; the literal {a,b} was never hashed).
+    set -l prefs_dir "$HOME/.config/starship"
+    set -l current_hash (sha256sum "$prefs_dir/style" "$prefs_dir/color" "$prefs_dir/modules.conf" 2>/dev/null | string collect)
     if test "$current_hash" = "$__dotfiles_build_hash"
         return 0
     end
     set -g __dotfiles_build_hash "$current_hash"
-    fish "$build_fish" >/dev/null 2>&1
+    source "$build_fish" >/dev/null 2>&1
 end

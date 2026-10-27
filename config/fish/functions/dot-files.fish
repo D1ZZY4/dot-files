@@ -41,7 +41,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
             switch $style
                 case 1 2 3 4 5
                     __dotfiles_write_style_file $style "$style_file"
-                    fish "$build_fish"
+                    source "$build_fish"
                     echo "Starship style set to $style ($style_file)"
                     echo ""
                     __dotfiles_starship_prompt_block
@@ -65,7 +65,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                     echo "Use: moonlight, catppuccin-macchiato, or catppuccin-mocha"
                     return 1
             end
-            fish "$build_fish"
+            source "$build_fish"
             set -l active_color (dotfiles-read-setting "$color_file")
             echo "Starship color set to $active_color ($color_file)"
             echo ""
@@ -98,7 +98,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                 rm -f "$modules_file.bak"
                 echo "dot-files: module '$module_name' enabled"
             end
-            fish "$build_fish"
+            source "$build_fish"
             echo ""
             __dotfiles_starship_prompt_block
 
@@ -114,7 +114,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
             sed -i.bak "s/^$escaped\$/# $module_name/" "$modules_file"
             rm -f "$modules_file.bak"
             echo "dot-files: module '$module_name' disabled"
-            fish "$build_fish"
+            source "$build_fish"
             echo ""
             __dotfiles_starship_prompt_block
 
@@ -145,7 +145,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                         set f "$modules_file"
                     end
                     __dotfiles_edit_file "$f"; or return 1
-                    fish "$build_fish"
+                    source "$build_fish"
                     echo ""
                     __dotfiles_starship_prompt_block
                 case username
