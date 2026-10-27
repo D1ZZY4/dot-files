@@ -1,4 +1,4 @@
-# Suppress Fish greeting. Fastfetch + Dev Tools handle startup.
+# Suppress Fish greeting. Fastfetch handles startup.
 
 if status --is-interactive
     functions -q fish_greeting; and functions -e fish_greeting

@@ -12,7 +12,7 @@
 
 <br />
 
-<img src="assets/preview/preview-terminal.png" alt="Terminal preview - Fastfetch summary, Dev Tools block, and Starship prompt" width="840" />
+<img src="assets/preview/preview-terminal.png" alt="Terminal preview - Fastfetch summary and Starship prompt" width="840" />
 
 </div>
 
@@ -20,7 +20,7 @@
 
 A clean, reproducible terminal setup built around the [Fish shell](https://fishshell.com/).
 It pairs a [Starship](https://starship.rs/) prompt with a [Fastfetch](https://github.com/fastfetch-cli/fastfetch)
-system summary and a dedicated **Dev Tools** block, all driven by plain-text preference
+system summary, all driven by plain-text preference
 files and a single `dot-files` command - no hardcoded usernames or machine-specific paths.
 
 ## Contents
@@ -41,8 +41,8 @@ files and a single `dot-files` command - no hardcoded usernames or machine-speci
 
 - **Modular Fish configuration** - composable `conf.d/`, `functions/`, and `completions/` units.
 - **Starship prompt** - five switchable separator styles and per-theme color palettes.
-- **Fastfetch summary** - a startup overview followed by a separate, auto-pruned Dev Tools block.
-- **One command to rule them** - `dot-files` adjusts styles, colors, modules, and tool visibility.
+- **Fastfetch summary** - a startup overview.
+- **One command to rule them** - `dot-files` adjusts styles, colors, and modules.
 - **Preference-driven** - everyday options live in simple text files; source files stay untouched.
 - **Icon-aware `ls` fallback** - graceful listings even without `eza` or `lsd`.
 - **Safe installer** - backup, symlink, copy, dry-run, and curl-based installation.
@@ -84,13 +84,6 @@ login shell before installing.
 > ```
 >
 > Then set **FiraCode Nerd Font** as your terminal font. Without a Nerd Font, the prompt and Fastfetch icons render as missing glyphs (□/▯).
-
-**Detected automatically by the Dev Tools block**
-
-- Runtimes - Node.js, Deno, Bun, Go, Rust, Java
-- Package managers - npm, pnpm, yarn
-- Python interpreters exposed as `python3.x`
-- Tooling - Git, GitHub CLI, Docker, Docker Compose, kubectl
 
 ## Installation
 
@@ -172,17 +165,11 @@ dot-files --edit style
 dot-files --edit color
 dot-files --edit modules
 dot-files --edit username
-dot-files --edit dev-tools
 
 # Starship modules (core is always on)
 dot-files --list-modules
 dot-files --enable-module git
 dot-files --disable-module git
-
-# Fastfetch Dev Tools block
-dot-files --dev-tools init
-dot-files --dev-tools toggle docker
-dot-files --dev-tools reload      # re-render Dev Tools without exec fish
 
 # Diagnostics
 dot-files --doctor               # run sanity checks, print one line per check
@@ -199,7 +186,6 @@ Everyday options live in plain-text files - lines starting with `#` are comments
 | `~/.config/starship/color` | Palette: `moonlight` or `catppuccin-macchiato` or `catppuccin-mocha` · rebuilt by `dot-files --edit color` |
 | `~/.config/starship/username` | Fastfetch welcome name · applied by `dot-files --edit username` |
 | `~/.config/starship/modules.conf` | Enabled Starship modules (created on first toggle) · rebuilt by `dot-files --edit modules` |
-| `~/.config/starship/dev-tools.toml` | Dev Tools visibility (created by `--dev-tools init`) · reload with `dot-files --dev-tools reload` |
 
 Leave `username` empty (comments only) to use your **system username**
 (`Welcome, {user-name}!`). Add a single line such as `Alex` for a custom title, then run
@@ -270,9 +256,8 @@ fish ~/.config/starship/build.fish
 ├── assets/
 │   └── preview/            # screenshots used in this README
 ├── config/
-│   ├── fastfetch/          # Fastfetch config + Dev Tools detection
-│   │   ├── config.jsonc
-│   │   └── dev-tools.fish
+│   ├── fastfetch/          # Fastfetch config
+│   │   └── config.jsonc
 │   ├── fish/
 │   │   ├── config.fish     # minimal entry point
 │   │   ├── conf.d/         # startup fragments (loaded on shell start)
@@ -296,7 +281,6 @@ fish ~/.config/starship/build.fish
 │       ├── style           # preference: separator 1–5
 │       ├── color           # preference: palette name
 │       ├── username        # preference: Fastfetch welcome name
-│       └── dev-tools.toml  # Dev Tools visibility config
 ├── docs/                   # detailed guides
 ├── install.sh
 ├── LICENSE

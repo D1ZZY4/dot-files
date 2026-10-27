@@ -2,7 +2,6 @@ function __dotfiles_doctor
     set -l starship_dir "$HOME/.config/starship"
     set -l color_file "$starship_dir/color"
     set -l modules_file "$starship_dir/modules.conf"
-    set -l devtools_file "$starship_dir/dev-tools.toml"
     set -l colors_dir "$starship_dir/colors"
     set -l has_fail 0
 
@@ -49,39 +48,6 @@ function __dotfiles_doctor
         echo "[OK] modules.conf references only known modules"
     else
         echo "[WARN] modules.conf contains unknown modules: "(string join ' ' $unknown_modules) >&2
-    end
-
-    set -l unknown_tools
-    if test -f "$devtools_file"
-        set -l in_section 0
-        while read -l line
-            set -l trimmed (string trim -- "$line")
-            if test -z "$trimmed"
-                continue
-            end
-            if string match -qr '^#' -- "$trimmed"
-                continue
-            end
-            if string match -qr '^\[' -- "$trimmed"
-                set in_section 1
-                continue
-            end
-            if test $in_section -eq 1
-                if string match -qr '=' -- "$trimmed"
-                    set -l key (string trim (string split -m 1 = -- "$trimmed")[1])
-                    if string match -qr '^[a-z_]+$' -- "$key"
-                        if not contains -- "$key" (__dotfiles_devtools_list)
-                            set -a unknown_tools "$key"
-                        end
-                    end
-                end
-            end
-        end < "$devtools_file"
-    end
-    if test (count $unknown_tools) -eq 0
-        echo "[OK] dev-tools.toml keys match known tools"
-    else
-        echo "[WARN] dev-tools.toml contains unknown keys: "(string join ' ' $unknown_tools) >&2
     end
 
     if test -e "$starship_dir/starship.toml"

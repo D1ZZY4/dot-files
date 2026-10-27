@@ -36,7 +36,6 @@ Preference files after install:
   ~/.config/starship/color      Starship palette name
   ~/.config/starship/username   Fastfetch welcome name (empty = system user)
   ~/.config/starship/modules.conf    Enabled Starship modules (one per line; # disables)
-  ~/.config/starship/dev-tools.toml  Dev Tools visibility
 
 Examples:
   ./install.sh

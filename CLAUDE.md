@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-Portable terminal environment for **Fish shell only** (no zsh/bash configs - see PLANNING.md "Out of Scope"). Three layers: Fish config, Starship prompt, Fastfetch startup summary with a Dev Tools block. Everything is preference-driven: users edit plain-text files, never generated sources.
+Portable terminal environment for **Fish shell only** (no zsh/bash configs - see PLANNING.md "Out of Scope"). Three layers: Fish config, Starship prompt, Fastfetch startup summary. Everything is preference-driven: users edit plain-text files, never generated sources.
 
 ## Validation (run after any change)
 
@@ -52,7 +52,6 @@ Everyday options are plain-text files, `#` = comment, first non-comment line is 
 | `color` | palette name (`moonlight` \| `catppuccin-macchiato` \| `catppuccin-mocha`) |
 | `username` | Fastfetch welcome name; empty = system username |
 | `modules.conf` | enabled Starship modules |
-| `dev-tools.toml` | Dev Tools tool visibility (TOML sections: runtimes, packages, python, system_tools, infrastructure) |
 | `ls-style`, `ll-style`, `ls-group` | eza output styles |
 
 ### Fish load order and conventions
@@ -61,20 +60,12 @@ Everyday options are plain-text files, `#` = comment, first non-comment line is 
 - Starship init is **deferred to first prompt** via `__starship_init --on-event fish_prompt` guard (avoids spawning Rust binary on every shell start). Uses `command starship` to bypass function shadowing.
 - Fastfetch runs **backgrounded** (`begin ... end &`) in `zz-fastfetch.fish` so it doesn't slow shell startup.
 - PATH: `conf.d/15-paths.fish` initializes universal `fish_user_paths` - never hardcode paths in config, tool dirs are added via `set -U`.
-- **Subdirectory helper pattern** (Fish autoloads only direct children of `functions/`): each function dir sources sibling `*.fish` helpers explicitly at load time. Same pattern in `functions/dot-files/` (18 `__dotfiles_*` helpers), `functions/ls/` (icon helpers), and `config/fastfetch/dev-tools/` (`__dt_*` helpers).
+- **Subdirectory helper pattern** (Fish autoloads only direct children of `functions/`): each function dir sources sibling `*.fish` helpers explicitly at load time. Same pattern in `functions/dot-files/` (17 `__dotfiles_*` helpers) and `functions/ls/` (icon helpers).
 - `functions/dot-files.fish` is the main `dot-files` CLI dispatcher (switch on `$argv[1]`).
 
 ### dot-files command
 
-`dot-files` (Fish function + completions) manages everything: `--style`, `--color`, `--username`, `--enable-module`/`--disable-module`/`--list-modules`, `--dev-tools init|toggle|reload`, `--edit style|color|modules|username|dev-tools`, `--ls-style`, `--ll-style`, `--ls-group`, `--doctor`, `--status`. Post-change rebuild: `fish "$build_fish"` + preview block. `--dev-tools reload` sources dev-tools.fish with `__dt_force_no_auto_render` set and calls `__dt_reload` (mtime-cached) - no `exec fish` needed.
-
-### Dev Tools block (fastfetch)
-
-`config/fastfetch/dev-tools.fish` detects installed tools on PATH and renders version lines per section. Conventions:
-- No `bash -c` / `eval` anywhere (security invariant, per PLANNING.md) - Fish-native `string replace -r` only.
-- `__dt_enabled <tool>` consults `dev-tools.toml`; uninstalled tools omitted regardless.
-- Python discovered from executables named `python3.x` via `__dt_python_lines`/`__dt_collect_python_binaries`.
-- Adding a tool: `__tool_line` entry in the matching section + key in `dev-tools.toml` init template + `__dotfiles_devtools_list`.
+`dot-files` (Fish function + completions) manages everything: `--style`, `--color`, `--username`, `--enable-module`/`--disable-module`/`--list-modules`, `--edit style|color|modules|username`, `--ls-style`, `--ll-style`, `--ls-group`, `--doctor`, `--status`. Post-change rebuild: `fish "$build_fish"` + preview block.
 
 ### ls style previews
 

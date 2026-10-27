@@ -11,7 +11,6 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
     set -l color_file "$starship_dir/color"
     set -l username_file "$starship_dir/username"
     set -l modules_file "$starship_dir/modules.conf"
-    set -l devtools_file "$starship_dir/dev-tools.toml"
 
     if test (count $argv) -eq 0
         __dotfiles_show_catalog "$style_file" "$color_file" "$username_file" "$modules_file"
@@ -137,101 +136,6 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
             echo ""
             echo "Use --enable-module or --disable-module to toggle."
 
-        case --dev-tools
-            if test (count $argv) -lt 2
-                echo "dot-files: missing dev-tools action" >&2
-                echo "Usage: dot-files --dev-tools init" >&2
-                echo "       dot-files --dev-tools toggle <tool_name>" >&2
-                echo "       dot-files --dev-tools reload" >&2
-                return 1
-            end
-            set -l dt_action $argv[2]
-
-            if test "$dt_action" = init
-                if not test -f "$devtools_file"
-                    printf '%s\n' \
-                        '# Dev Tools visibility for the Fastfetch startup block.' \
-                        '# Set a tool to false to hide it (for example: docker = false).' \
-                        '# Tools not installed are omitted regardless.' \
-                        '# Updated via: dot-files --dev-tools toggle <tool>' \
-                        '' \
-                        '[runtimes]' \
-                        'nodejs = true' 'deno = true' 'bun = true' \
-                        'go = true' 'rustc = true' 'java = true' \
-                        '' \
-                        '[packages]' \
-                        'npm = true' 'pnpm = true' 'yarn = true' \
-                        'cargo = true' 'pipx = true' 'uv = true' \
-                        '' \
-                        '[python]' \
-                        'python = true' \
-                        '' \
-                        '[system_tools]' \
-                        'git = true' 'gh = true' \
-                        '' \
-                        '[infrastructure]' \
-                        'docker = true' 'compose = true' 'kubectl = true' \
-                        > "$devtools_file"
-                    echo "dot-files: dev-tools config created at $devtools_file"
-                else
-                    echo "dot-files: dev-tools config already exists at $devtools_file"
-                end
-                return 0
-            end
-
-            if test "$dt_action" = toggle
-                if test (count $argv) -lt 3
-                    echo "dot-files: missing tool name for toggle" >&2
-                    set -l tools_list (string join ' ' (__dotfiles_devtools_list))
-                    echo "Tools: $tools_list" >&2
-                    return 1
-                end
-                set -l tool_name $argv[3]
-                if not test -f "$devtools_file"
-                    echo "dot-files: dev-tools config not found, run: dot-files --dev-tools init" >&2
-                    return 1
-                end
-                set -l current_val (string match -r "^$tool_name[[:space:]]*=[[:space:]]*(.+)" < "$devtools_file" 2>/dev/null | tail -n 1 | string trim -c ',"' | string replace -r '.*=\s*' '' | string trim -c ',"')
-                if test -z "$current_val"
-                    echo "dot-files: unknown tool '$tool_name'" >&2
-                    set -l tools_list (string join ' ' (__dotfiles_devtools_list))
-                    echo "Tools: $tools_list" >&2
-                    return 1
-                end
-                set -l new_val
-                if test "$current_val" = "true"
-                    set new_val "false"
-                else
-                    set new_val "true"
-                end
-                set -l escaped (__dotfiles_regex_escape "$tool_name")
-                sed -i.bak "s/^$escaped[[:space:]]*=[[:space:]]*.*/$tool_name = $new_val/" "$devtools_file"
-                rm -f "$devtools_file.bak"
-                echo "dot-files: $tool_name -> $new_val"
-                return 0
-            end
-
-            if test "$dt_action" = reload
-                if not test -f "$devtools_file"
-                    echo "dot-files: dev-tools config not found, run: dot-files --dev-tools init" >&2
-                    return 1
-                end
-                set -x __dt_force_no_auto_render 1
-                source "$HOME/.config/fastfetch/dev-tools.fish"
-                set -e __dt_force_no_auto_render
-                if functions -q __dt_reload
-                    __dt_reload
-                    return 0
-                else
-                    echo "dot-files: __dt_reload not found in dev-tools.fish" >&2
-                    return 1
-                end
-            end
-
-            echo "dot-files: unknown dev-tools action '$dt_action'" >&2
-            echo "Use: init, toggle, reload" >&2
-            return 1
-
         case --edit -e
             set -l edit_target $argv[2]
             switch "$edit_target"
@@ -249,12 +153,9 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                     fastfetch-apply-welcome
                     and echo "dot-files: welcome name updated"
                     return 0
-                case dev-tools
-                    __dotfiles_edit_file "$devtools_file"; or return 1
-                    echo "dot-files: dev-tools updated (changes apply on next startup)"
                 case '*'
                     echo "dot-files: unknown edit target '$edit_target'" >&2
-                    echo "Usage: dot-files --edit style|color|modules|username|dev-tools" >&2
+                    echo "Usage: dot-files --edit style|color|modules|username" >&2
                     return 1
             end
 

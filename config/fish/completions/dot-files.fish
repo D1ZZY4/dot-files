@@ -26,19 +26,7 @@ complete -c dot-files -l list-modules -d 'List modules and their status'
 complete -c dot-files -l doctor -d 'Run read-only sanity checks'
 complete -c dot-files -l status -d 'Show dotfiles git status vs upstream'
 
-complete -c dot-files -s e -l edit -x -a 'style color modules username dev-tools' -d 'Open a preference file in \$EDITOR and rebuild'
-
-complete -c dot-files -l dev-tools -x -a 'init toggle reload' -d 'Manage the dev-tools config or toggle a tool'
+complete -c dot-files -s e -l edit -x -a 'style color modules username' -d 'Open a preference file in \$EDITOR and rebuild'
 complete -c dot-files -l ls-style -x -a '1 2 3 4 5 6' -d 'Set eza ls output style'
 complete -c dot-files -l ll-style -x -a '1 2 3 4 5 6' -d 'Set eza ll output style'
 complete -c dot-files -l ls-group -x -a 'on off' -d 'Group directories first'
-
-# Dev-tools toggle candidates from __dotfiles_devtools_list, with fallback.
-set -l _dotfiles_devtools_opts
-if functions -q __dotfiles_devtools_list
-    set _dotfiles_devtools_opts (__dotfiles_devtools_list)
-else
-    set _dotfiles_devtools_opts nodejs deno bun go rustc java npm pnpm yarn cargo pipx uv python git gh docker compose kubectl
-end
-complete -c dot-files -n '__fish_seen_subcommand_from toggle' -f -a "$_dotfiles_devtools_opts"
-

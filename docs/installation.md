@@ -12,8 +12,6 @@
 - [eza](https://github.com/eza-community/eza) - modern `ls` replacement (**v0.23.5+** recommended) - required for `ls`/`ll` live previews in `dot-files`
 - A Nerd Font - [FiraCode Nerd Font](https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/FiraCode.zip) recommended (required for prompt and Fastfetch glyphs)
 
-Optional tools listed in the Dev Tools block: Node.js, npm, pnpm, Python, Go, Rust, Java, Git, Docker, and others.
-
 ## Quick install (curl)
 
 The commands below install from `D1ZZY4/dot-files`. Forking? Replace `D1ZZY4/dot-files` with your own `<user>/<repo>` and set `DOTFILES_REPO_URL` in `install.sh` before publishing your own one-liner.
@@ -61,7 +59,6 @@ After install, edit these directly or use `dot-files`:
 ~/.config/starship/color         # moonlight | catppuccin-macchiato | catppuccin-mocha
 ~/.config/starship/username      # empty = system user; one line = custom name
 ~/.config/starship/modules.conf  # enabled modules (created on first toggle)
-~/.config/starship/dev-tools.toml # Dev Tools visibility (created by --dev-tools init)
 ```
 
 Empty `username` (comments only) keeps Fastfetch on `Welcome, {user-name}!`.
