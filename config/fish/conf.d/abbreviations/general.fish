@@ -6,10 +6,14 @@ end
 
 abbr -a dotf dot-files
 
-abbr -a .. 'cd ..'
-abbr -a ... 'cd ../..'
-abbr -a .... 'cd ../../..'
-abbr -a ..... 'cd ../../../..'
+# Navigation: skip when CachyOS defines the same functions via its aliases.
+# CachyOS config.fish sources cachyos-config after conf.d, shadowing these.
+if not path is -f /usr/share/cachyos-fish-config/cachyos-config.fish
+    abbr -a .. 'cd ..'
+    abbr -a ... 'cd ../..'
+    abbr -a .... 'cd ../../..'
+    abbr -a ..... 'cd ../../../..'
+end
 
 abbr -a c clear
 abbr -a cl clear
