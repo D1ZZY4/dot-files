@@ -7,6 +7,10 @@ if status --is-interactive
     # Lazy-init: skip if already populated (avoids resetting user's list on re-source).
     set -q fish_user_paths; or set -U fish_user_paths
 
+    if test -r "$HOME/.cargo/env.fish"
+        source "$HOME/.cargo/env.fish"
+    end
+
 # ── Common PATH entries ────────────────────────────────────────────────
 #
 # fnm (Fast Node Manager):
