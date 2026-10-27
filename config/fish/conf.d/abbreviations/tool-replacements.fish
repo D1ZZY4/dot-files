@@ -1,30 +1,30 @@
 # Tool replacements: swap standard CLI tools with modern alternatives.
 # Requires the replacement tool to be installed.
 
-if not status --is-interactive
+if not status is-interactive
     exit 0
 end
 
-if type -q bat
+if command -q bat
     abbr -a cat bat
 end
 
-if type -q fd
+if command -q fd
     abbr -a find fd
 end
 
-if type -q rg
+if command -q rg
     abbr -a grep rg
 end
 
-if type -q dust
+if command -q dust
     abbr -a du dust
 end
 
-if type -q procs
+if command -q procs
     abbr -a ps procs
 end
 
-if type -q zoxide
+if command -q zoxide
     abbr -a cd z
 end

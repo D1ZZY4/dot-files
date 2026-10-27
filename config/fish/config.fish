@@ -1,4 +1,4 @@
-if test -f /usr/share/cachyos-fish-config/cachyos-config.fish
+if path is -f /usr/share/cachyos-fish-config/cachyos-config.fish
     source /usr/share/cachyos-fish-config/cachyos-config.fish
     # CachyOS defines fish_greeting that runs fastfetch. Our
     # zz-fastfetch.fish handles it, so suppress the

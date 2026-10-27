@@ -10,13 +10,13 @@ function nvm --description 'Node Version Manager wrapper (lazy-loads nvm on firs
     # the -c string. Prevents single-quote breakout.
     set -l nvm_dir
     set -l nvm_sh
-    if test -n "$NVM_DIR" -a -f "$NVM_DIR/nvm.sh"
+    if test -n "$NVM_DIR"; and path is -f "$NVM_DIR/nvm.sh"
         set nvm_dir "$NVM_DIR"
         set nvm_sh "$NVM_DIR/nvm.sh"
-    else if test -f "$HOME/.nvm/nvm.sh"
+    else if path is -f "$HOME/.nvm/nvm.sh"
         set nvm_dir "$HOME/.nvm"
         set nvm_sh "$HOME/.nvm/nvm.sh"
-    else if test -f /usr/share/nvm/init-nvm.sh
+    else if path is -f /usr/share/nvm/init-nvm.sh
         set nvm_dir /usr/share/nvm
         set nvm_sh /usr/share/nvm/init-nvm.sh
     else

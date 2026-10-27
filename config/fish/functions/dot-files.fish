@@ -1,7 +1,7 @@
 # Autoload helpers from dot-files/ directory.
 # Fish autoloads by filename from functions/, not subdirectories.
 for f in (dirname (status --current-filename))/dot-files/*.fish
-    test -f "$f"; and source "$f"
+    path is -f "$f"; and source "$f"
 end
 
 function dot-files --description 'Manage Starship and Fastfetch dotfiles preferences'
@@ -120,7 +120,7 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
 
         case --list-modules
             set -l enabled (dotfiles-read-modules "$modules_file")
-            if not test -f "$modules_file"
+            if not path is -f "$modules_file"
                 set enabled core directory git languages package
             end
             echo "Available modules (core cannot be disabled):"

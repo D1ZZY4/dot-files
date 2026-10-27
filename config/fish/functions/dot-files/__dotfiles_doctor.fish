@@ -7,14 +7,14 @@ function __dotfiles_doctor
 
     echo "dot-files doctor:"
 
-    if type -q starship
+    if command -q starship
         echo "[OK] starship is on PATH"
     else
         echo "[FAIL] starship is not on PATH" >&2
         set has_fail 1
     end
 
-    if type -q fastfetch
+    if command -q fastfetch
         echo "[OK] fastfetch is on PATH"
     else
         echo "[FAIL] fastfetch is not on PATH" >&2
@@ -30,14 +30,14 @@ function __dotfiles_doctor
 
     set -l color_val (dotfiles-read-setting "$color_file"; or echo moonlight)
     set -l color_theme_file "$colors_dir/$color_val.toml"
-    if not test -f "$color_theme_file"
+    if not path is -f "$color_theme_file"
         echo "[WARN] color '$color_val' does not match any theme in colors/" >&2
     else
         echo "[OK] color '$color_val' matches a known theme"
     end
 
     set -l unknown_modules
-    if test -f "$modules_file"
+    if path is -f "$modules_file"
         for mod in (dotfiles-read-modules "$modules_file" 2>/dev/null)
             if not contains -- "$mod" (__dotfiles_all_modules)
                 set -a unknown_modules "$mod"
@@ -50,14 +50,14 @@ function __dotfiles_doctor
         echo "[WARN] modules.conf contains unknown modules: "(string join ' ' $unknown_modules) >&2
     end
 
-    if test -e "$starship_dir/starship.toml"
+    if path is "$starship_dir/starship.toml"
         echo "[OK] starship.toml exists"
     else
         echo "[FAIL] starship.toml not found at $starship_dir/starship.toml" >&2
         set has_fail 1
     end
 
-    if test -f "$HOME/.config/fastfetch/config.jsonc"
+    if path is -f "$HOME/.config/fastfetch/config.jsonc"
         echo "[OK] fastfetch config.jsonc exists"
     else
         echo "[FAIL] fastfetch config.jsonc not found at $HOME/.config/fastfetch/config.jsonc" >&2

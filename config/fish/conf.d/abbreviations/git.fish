@@ -1,10 +1,10 @@
 # Git abbreviations (requires git).
 
-if not status --is-interactive
+if not status is-interactive
     exit 0
 end
 
-if type -q git
+if command -q git
     abbr -a g git
     abbr -a gst git status -sb
     abbr -a glog git log --oneline --graph --decorate --all

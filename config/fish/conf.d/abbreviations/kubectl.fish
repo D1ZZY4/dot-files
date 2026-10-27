@@ -1,10 +1,10 @@
 # Kubernetes abbreviations (requires kubectl).
 
-if not status --is-interactive
+if not status is-interactive
     exit 0
 end
 
-if type -q kubectl
+if command -q kubectl
     abbr -a k kubectl
     abbr -a kx 'kubectl exec -it'
     abbr -a kl 'kubectl logs -f'

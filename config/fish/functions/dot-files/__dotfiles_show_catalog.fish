@@ -41,7 +41,7 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
     echo "  $username_file"
     echo "  $modules_file"
     echo ""
-    if type -q starship
+    if command -q starship
         echo "$heading""Styles$normal $muted(real prompt from your shell * = active)$normal"
 
         for style_check in 1 2 3 4 5

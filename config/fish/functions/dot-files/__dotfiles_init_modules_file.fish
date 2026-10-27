@@ -1,5 +1,5 @@
 function __dotfiles_init_modules_file --argument-names modules_file
-    if test -f "$modules_file"
+    if path is -f "$modules_file"
         return 0
     end
     for module in (__dotfiles_all_modules)

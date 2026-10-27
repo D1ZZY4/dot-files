@@ -1,10 +1,10 @@
 # Terraform abbreviations (requires terraform).
 
-if not status --is-interactive
+if not status is-interactive
     exit 0
 end
 
-if type -q terraform
+if command -q terraform
     abbr -a tf terraform
     abbr -a tfi 'terraform init'
     abbr -a tfp 'terraform plan'

@@ -5,11 +5,11 @@ if not set -q __dotfiles_build_hash
 end
 
 function __dotfiles_rebuild_quiet
-    if not type -q starship
+    if not command -q starship
         return 0
     end
     set -l build_fish "$HOME/.config/starship/build.fish"
-    if not test -f "$build_fish"
+    if not path is -f "$build_fish"
         return 1
     end
     # Skip cache when preview env vars are active (catalog previews).

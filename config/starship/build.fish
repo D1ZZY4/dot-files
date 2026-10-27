@@ -31,7 +31,7 @@ else
 end
 
 set -l selected_color_file "$colors_dir/$color_theme.toml"
-if not test -f "$selected_color_file"
+if not path is -f "$selected_color_file"
     echo "build.fish: unknown color '$color_theme', falling back to moonlight" >&2
     set color_theme moonlight
     set selected_color_file "$colors_dir/moonlight.toml"
@@ -94,7 +94,7 @@ end
 
 for module_name in $module_order
     set -l module "$config_dir/modules/$module_name.toml"
-    if not test -f "$module"
+    if not path is -f "$module"
         echo "build.fish: module '$module_name' not found, skipping" >&2
         continue
     end

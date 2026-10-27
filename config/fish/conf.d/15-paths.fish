@@ -3,11 +3,11 @@
 # Fish prepends them to PATH on startup and deduplicates.
 # Interactive only: PATH inherits from login shell.
 
-if status --is-interactive
+if status is-interactive
     # Lazy-init: skip if already populated (avoids resetting user's list on re-source).
     set -q fish_user_paths; or set -U fish_user_paths
 
-    if test -r "$HOME/.cargo/env.fish"
+    if path is -r "$HOME/.cargo/env.fish"
         source "$HOME/.cargo/env.fish"
     end
 

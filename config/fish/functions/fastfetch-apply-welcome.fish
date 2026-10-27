@@ -7,12 +7,12 @@ function fastfetch-apply-welcome --description 'Apply starship/username to Fastf
     set -l legacy_username_file "$HOME/.config/fastfetch/username"
 
     # Migrate from old fastfetch/username location.
-    if not test -f "$username_file"; and test -f "$legacy_username_file"
+    if not path is -f "$username_file"; and path is -f "$legacy_username_file"
         mkdir -p (dirname "$username_file")
         mv "$legacy_username_file" "$username_file"
     end
 
-    if not test -f "$fastfetch_config"
+    if not path is -f "$fastfetch_config"
         echo "dot-files: fastfetch config not found at $fastfetch_config" >&2
         return 1
     end
