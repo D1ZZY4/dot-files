@@ -7,7 +7,7 @@ This repository targets **Fish only**. Configuration is split into `conf.d` star
 - [Fish shell](https://fishshell.com/)
 - [Starship](https://starship.rs/)
 - [Fastfetch](https://github.com/fastfetch-cli/fastfetch)
-- [eza](https://github.com/eza-community/eza) — modern `ls` replacement (**v0.23.5+** recommended) — required for `ls`/`ll` live previews and enhanced directory listings
+- [eza](https://github.com/eza-community/eza) - modern `ls` replacement (**v0.23.5+** recommended) - required for `ls`/`ll` live previews and enhanced directory listings
 
 ## Startup files
 
@@ -23,7 +23,7 @@ Fish loads `conf.d` automatically. File order matters; `zz-*` runs late on purpo
 | `10-startup-message.fish` | Disables Fish greeting (Fastfetch handles startup) |
 | `15-paths.fish` | Persistent `fish_user_paths` for tool-managed PATH entries |
 | `20-starship.fish` | `starship init fish` |
-| `30-abbreviations.fish` | **Loader** — sources all files from `abbreviations/` |
+| `30-abbreviations.fish` | **Loader** - sources all files from `abbreviations/` |
 | `zz-fastfetch.fish` | Fastfetch + Dev Tools (after version managers load) |
 
 ## Abbreviations (modular)
@@ -49,7 +49,7 @@ To add a new abbreviation, create a new `abbreviations/<name>.fish` file.
 
 All abbreviations expand on SPACE or ENTER in interactive sessions.
 
-### ls — eza / lsd
+### ls - eza / lsd
 
 When **eza** is installed, activated via style system:
 
@@ -250,9 +250,9 @@ dot-files --ls-group on|off            # toggle group-directories-first
 Open the active preference file for the chosen target and apply any rebuild after
 the editor closes:
 
-- `style` / `color` / `modules` — rebuilds the Starship prompt then shows a preview
-- `username` — runs `fastfetch-apply-welcome`
-- `dev-tools` — prints a reminder that changes apply on next startup, or run `dot-files --dev-tools reload` to apply now
+- `style` / `color` / `modules` - rebuilds the Starship prompt then shows a preview
+- `username` - runs `fastfetch-apply-welcome`
+- `dev-tools` - prints a reminder that changes apply on next startup, or run `dot-files --dev-tools reload` to apply now
 
 ## Persistent PATH with `fish_user_paths`
 

@@ -39,7 +39,7 @@ function __dotfiles_ll_cmd
     end
 end
 
-# Return eza flags (no command) for a given ls style number — used by catalog previews.
+# Return eza flags (no command) for a given ls style number - used by catalog previews.
 function __dotfiles_ls_flags -a style
     switch $style
         case 1; echo ""

@@ -1,4 +1,4 @@
-# Package metadata — disabled by default (filesystem scan overhead).
+# Package metadata - disabled by default (filesystem scan overhead).
 # Enable with: dot-files --enable-module package
 [package]
 disabled = true

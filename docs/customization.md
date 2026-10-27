@@ -7,7 +7,7 @@ This setup is edited in small, focused modules. Prefer the preference files belo
 - [Fish shell](https://fishshell.com/)
 - [Starship](https://starship.rs/)
 - [Fastfetch](https://github.com/fastfetch-cli/fastfetch)
-- [eza](https://github.com/eza-community/eza) — modern `ls` replacement (**v0.23.5+** recommended) — required for `ls`/`ll` live previews in `dot-files` and enhanced directory listings
+- [eza](https://github.com/eza-community/eza) - modern `ls` replacement (**v0.23.5+** recommended) - required for `ls`/`ll` live previews in `dot-files` and enhanced directory listings
 
 ## Preference files
 
@@ -54,9 +54,9 @@ dot-files --edit username  # apply Fastfetch welcome
 dot-files --edit dev-tools # edit visibility; changes apply next startup (or run reload)
 ```
 
-- **style / color / modules** — rebuilds the Starship config after the editor exits, then shows a prompt preview.
-- **username** — runs `fastfetch-apply-welcome` after the editor exits.
-- **dev-tools** — reminders that changes apply on next startup; run `dot-files --dev-tools reload` to apply now without `exec fish`.
+- **style / color / modules** - rebuilds the Starship config after the editor exits, then shows a prompt preview.
+- **username** - runs `fastfetch-apply-welcome` after the editor exits.
+- **dev-tools** - reminders that changes apply on next startup; run `dot-files --dev-tools reload` to apply now without `exec fish`.
 
 ## Persistent PATH
 

@@ -12,7 +12,7 @@
 
 <br />
 
-<img src="assets/preview/preview-terminal.png" alt="Terminal preview — Fastfetch summary, Dev Tools block, and Starship prompt" width="840" />
+<img src="assets/preview/preview-terminal.png" alt="Terminal preview - Fastfetch summary, Dev Tools block, and Starship prompt" width="840" />
 
 </div>
 
@@ -21,7 +21,7 @@
 A clean, reproducible terminal setup built around the [Fish shell](https://fishshell.com/).
 It pairs a [Starship](https://starship.rs/) prompt with a [Fastfetch](https://github.com/fastfetch-cli/fastfetch)
 system summary and a dedicated **Dev Tools** block, all driven by plain-text preference
-files and a single `dot-files` command — no hardcoded usernames or machine-specific paths.
+files and a single `dot-files` command - no hardcoded usernames or machine-specific paths.
 
 ## Contents
 
@@ -39,18 +39,18 @@ files and a single `dot-files` command — no hardcoded usernames or machine-spe
 
 ## Highlights
 
-- **Modular Fish configuration** — composable `conf.d/`, `functions/`, and `completions/` units.
-- **Starship prompt** — five switchable separator styles and per-theme color palettes.
-- **Fastfetch summary** — a startup overview followed by a separate, auto-pruned Dev Tools block.
-- **One command to rule them** — `dot-files` adjusts styles, colors, modules, and tool visibility.
-- **Preference-driven** — everyday options live in simple text files; source files stay untouched.
-- **Icon-aware `ls` fallback** — graceful listings even without `eza` or `lsd`.
-- **Safe installer** — backup, symlink, copy, dry-run, and curl-based installation.
+- **Modular Fish configuration** - composable `conf.d/`, `functions/`, and `completions/` units.
+- **Starship prompt** - five switchable separator styles and per-theme color palettes.
+- **Fastfetch summary** - a startup overview followed by a separate, auto-pruned Dev Tools block.
+- **One command to rule them** - `dot-files` adjusts styles, colors, modules, and tool visibility.
+- **Preference-driven** - everyday options live in simple text files; source files stay untouched.
+- **Icon-aware `ls` fallback** - graceful listings even without `eza` or `lsd`.
+- **Safe installer** - backup, symlink, copy, dry-run, and curl-based installation.
 
 ## Shell support
 
 This repository ships **Fish integration only**. Fish functions, `conf.d` snippets, and
-install-time steps (such as Starship config generation) assume Fish — set Fish as your
+install-time steps (such as Starship config generation) assume Fish - set Fish as your
 login shell before installing.
 
 | Shell | Supported |
@@ -67,12 +67,12 @@ login shell before installing.
 
 **Required**
 
-- [Fish shell](https://fishshell.com/) — your daily login / interactive shell
+- [Fish shell](https://fishshell.com/) - your daily login / interactive shell
 - [Starship](https://starship.rs/)
 - [Fastfetch](https://github.com/fastfetch-cli/fastfetch)
-- Git — for the curl-based and clone-based installs
-- A [Nerd Font](https://www.nerdfonts.com/) terminal font — **FiraCode Nerd Font** recommended ([download FiraCode.zip](https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/FiraCode.zip) · [all releases](https://github.com/ryanoasis/nerd-fonts/releases/latest))
-- [eza](https://github.com/eza-community/eza) — modern `ls` replacement (v0.23.5+ recommended) — used for live `ls`/`ll` previews and enhanced directory listings
+- Git - for the curl-based and clone-based installs
+- A [Nerd Font](https://www.nerdfonts.com/) terminal font - **FiraCode Nerd Font** recommended ([download FiraCode.zip](https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/FiraCode.zip) · [all releases](https://github.com/ryanoasis/nerd-fonts/releases/latest))
+- [eza](https://github.com/eza-community/eza) - modern `ls` replacement (v0.23.5+ recommended) - used for live `ls`/`ll` previews and enhanced directory listings
 
 > **Install FiraCode Nerd Font (Linux):**
 >
@@ -87,10 +87,10 @@ login shell before installing.
 
 **Detected automatically by the Dev Tools block**
 
-- Runtimes — Node.js, Deno, Bun, Go, Rust, Java
-- Package managers — npm, pnpm, yarn
+- Runtimes - Node.js, Deno, Bun, Go, Rust, Java
+- Package managers - npm, pnpm, yarn
 - Python interpreters exposed as `python3.x`
-- Tooling — Git, GitHub CLI, Docker, Docker Compose, kubectl
+- Tooling - Git, GitHub CLI, Docker, Docker Compose, kubectl
 
 ## Installation
 
@@ -145,12 +145,12 @@ exec fish
 
 ## The `dot-files` command
 
-A single Fish helper manages everything at runtime — run `dot-files` with no arguments to
+A single Fish helper manages everything at runtime - run `dot-files` with no arguments to
 see active settings, preference paths, live style/color previews, and the welcome format.
 
 <div align="center">
 
-<img src="assets/preview/preview-dot-files.png" alt="dot-files command output — usage, active settings, style and color previews" width="840" />
+<img src="assets/preview/preview-dot-files.png" alt="dot-files command output - usage, active settings, style and color previews" width="840" />
 
 </div>
 
@@ -191,7 +191,7 @@ dot-files --status               # report dotfiles git state vs upstream
 
 ## Preference files
 
-Everyday options live in plain-text files — lines starting with `#` are comments.
+Everyday options live in plain-text files - lines starting with `#` are comments.
 
 | File | Purpose |
 | :--- | :--- |
@@ -254,7 +254,7 @@ Themes live in `config/starship/colors/`, each with its own Starship palette
 5. Links `~/.config/starship.toml` to the generated Starship config
 6. Backs up replaced files under `~/.dotfiles-backup/<timestamp>`
 
-`config/starship/starship.toml` is intentionally **not committed** — it is generated from
+`config/starship/starship.toml` is intentionally **not committed** - it is generated from
 the modular source files by:
 
 ```fish
@@ -316,7 +316,7 @@ fish ~/.config/starship/build.fish
 
 <div align="center">
 
-This repository avoids hardcoded usernames and machine-specific home paths — runtime paths
+This repository avoids hardcoded usernames and machine-specific home paths - runtime paths
 resolve through `$HOME`, `$XDG_CONFIG_HOME`, and command discovery wherever practical.
 
 Licensed under the [MIT License](LICENSE).

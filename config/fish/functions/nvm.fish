@@ -1,6 +1,6 @@
 function nvm --description 'Node Version Manager wrapper (lazy-loads nvm on first call)'
     # nvm is bash-only, no Fish equivalent. Delegate to bash when not loaded.
-    # Use a marker flag instead of `type -q nvm` — that always returns 0
+    # Use a marker flag instead of `type -q nvm` - that always returns 0
     # (this function IS nvm).
     if set -q __nvm_loaded
         return 0

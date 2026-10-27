@@ -4,13 +4,13 @@
 
 ## Prerequisites
 
-- `fish` — required (login shell)
+- `fish` - required (login shell)
 - `starship`
 - `fastfetch`
-- `eza` — modern `ls` replacement (v0.23.5+ recommended) — required for `ls`/`ll` live previews in `dot-files`
-- `git` — required for curl-based install
-- [eza](https://github.com/eza-community/eza) — modern `ls` replacement (**v0.23.5+** recommended) — required for `ls`/`ll` live previews in `dot-files`
-- A Nerd Font — [FiraCode Nerd Font](https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/FiraCode.zip) recommended (required for prompt and Fastfetch glyphs)
+- `eza` - modern `ls` replacement (v0.23.5+ recommended) - required for `ls`/`ll` live previews in `dot-files`
+- `git` - required for curl-based install
+- [eza](https://github.com/eza-community/eza) - modern `ls` replacement (**v0.23.5+** recommended) - required for `ls`/`ll` live previews in `dot-files`
+- A Nerd Font - [FiraCode Nerd Font](https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/FiraCode.zip) recommended (required for prompt and Fastfetch glyphs)
 
 Optional tools listed in the Dev Tools block: Node.js, npm, pnpm, Python, Go, Rust, Java, Git, Docker, and others.
 

@@ -2,10 +2,10 @@
 # Merge modular Starship sources into starship.toml.
 #
 # Preference files:
-#   style        — separator 1-5
-#   color        — palette name (colors/<name>.toml)
-#   modules.conf — enabled modules, one per line; # disables
-#   username     — Fastfetch welcome name
+#   style        - separator 1-5
+#   color        - palette name (colors/<name>.toml)
+#   modules.conf - enabled modules, one per line; # disables
+#   username     - Fastfetch welcome name
 #
 # Run directly: fish build.fish
 # Or via: dot-files --edit style|color|modules

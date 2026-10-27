@@ -61,7 +61,7 @@ function ls --description 'List files with Nerd Font icons' --wraps ls
                         case s; set sort "size"
                         case h; # GNU ls -h (human-readable), safe to ignore
                         case '*'
-                            # Unknown short flag — pass through to command ls
+                            # Unknown short flag - pass through to command ls
                             command ls $argv
                             return $status
                     end
