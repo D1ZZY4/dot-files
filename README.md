@@ -40,7 +40,7 @@ files and a single `dot-files` command - no hardcoded usernames or machine-speci
 ## Highlights
 
 - **Modular Fish configuration** - composable `conf.d/`, `functions/`, and `completions/` units.
-- **Starship prompt** - five switchable separator styles and per-theme color palettes.
+- **Starship prompt** - five switchable separator styles, per-theme color palettes, and a git segment with branch, commit hash, operation state, and colored staged/modified/etc. counts.
 - **Fastfetch summary** - a startup overview.
 - **One command to rule them** - `dot-files` adjusts styles, colors, and modules.
 - **Preference-driven** - everyday options live in simple text files; source files stay untouched.

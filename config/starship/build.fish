@@ -89,7 +89,8 @@ if test (count $enabled_modules) -gt 0
         end
     end
 else
-    set module_order core directory git languages package file-icons
+    # No modules.conf: everything on except file-icons (matches modules.conf defaults).
+    set module_order core directory git languages package
 end
 
 for module_name in $module_order

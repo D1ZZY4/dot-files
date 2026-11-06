@@ -43,6 +43,30 @@ package.toml
 file-icons.toml
 ```
 
+If `modules.conf` is missing or fully commented, the generated config enables
+`core directory git languages package` (file-icons stays off), matching the
+defaults written by `dot-files --enable-module`.
+
+## Git segment
+
+`git.toml` renders a compact, info-dense git segment:
+
+- `git_branch` and `git_commit` share one teal capsule: branch name plus the
+  short commit hash (`commit_hash_length = 7`, always shown, not only when
+  detached).
+- `git_state` renders a separate yellow capsule only while an operation is in
+  progress (`MERGING`, `REBASING`, `CHERRY-PICKING`, …). Nothing is rendered
+  otherwise.
+- `git_status` renders colored glyphs with counts, one color per status kind:
+  staged green `+`, modified yellow `!`, deleted red `✘`, renamed blue `»`,
+  untracked sky-blue `?`, stashed purple `󰏗`, conflicted red, typechanged
+  yellow `~`. Ahead/behind/diverged are one combined `ahead_behind` variable
+  (Starship has no separate `$ahead`/`$behind` format variables), rendered in
+  yellow: `⇡2`, `⇣1`, or `⇕⇡2⇣1`.
+
+Because every piece interpolates an empty value when inactive, repos without a
+remote or without any changes render cleanly (just branch + hash).
+
 To add a new module, edit `config/starship/build.fish` and insert the filename into the `module_order` list at the correct position.
 
 ## Preference files

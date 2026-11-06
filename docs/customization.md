@@ -180,14 +180,29 @@ The enabled set is stored in `~/.config/starship/modules.conf` (one module per l
 
 ## Directory icons
 
-Directory icons are in `config/starship/modules/directory.toml`.
+Directory icons are in `config/starship/modules/directory.toml`. Entries are an
+array of `{ from, to, regex? }` tables under
+`[[directory.substitutions]]`.
 
-Starship `directory.substitutions` performs string replacement, not strict segment matching. Avoid overly generic keys such as `test` or `cache` when they could match unrelated paths.
+- The home directory shows just a home icon (`home_symbol = ""`); the `~`
+  is not appended.
+- The full path is always shown (`truncate_to_repo = false`,
+  `truncation_length = 100`); the home prefix renders as the home icon.
+- The exact root path `/` shows a shield icon via an anchored regex entry
+  (`{ from = "^/$", to = "", regex = true }`). The `^…$` anchors matter:
+  Starship substitutes are plain substring replacements, so an unanchored
+  `/` would replace every path separator everywhere.
+
+String replacement, not strict segment matching. Avoid overly generic keys such as `test` or `cache` when they could match unrelated paths.
 
 Prefer specific entries:
 
 ```toml
-".venv" = " .venv"
-".pytest_cache" = "󰙨 .pytest_cache"
-"node_modules" = " node_modules"
+[[directory.substitutions]]
+from = ".venv"
+to = " .venv"
+
+[[directory.substitutions]]
+from = "node_modules"
+to = " node_modules"
 ```

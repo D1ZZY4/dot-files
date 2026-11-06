@@ -192,6 +192,5 @@ set -U fish_user_paths ~/.cargo/bin $fish_user_paths
 ## nvm wrapper
 
 `functions/nvm.fish` lazy-loads Node Version Manager on first call. Because
-nvm is a bash-only script, the wrapper delegates to `bash -lc` when nvm has
-not already been loaded into the session. The `$NVM_DIR` environment variable
-is respected if set.
+nvm is a bash-only script, the wrapper delegates to `bash -c` on every call.
+The `$NVM_DIR` environment variable is respected if set.

@@ -10,7 +10,8 @@ function __dotfiles_status
     echo "Repo: $repo"
     echo "Branch: $branch_info"
 
-    set -l modified (git -C "$repo" diff --name-only 2>/dev/null)
+    # Compare against HEAD so both staged and unstaged tracked changes show up.
+    set -l modified (git -C "$repo" diff --name-only HEAD 2>/dev/null)
     if test (count $modified) -gt 0
         echo "Modified files:"
         for f in $modified

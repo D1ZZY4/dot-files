@@ -46,6 +46,14 @@ Examples:
 EOF
 }
 
+case "$INSTALL_MODE" in
+  symlink|copy) ;;
+  *)
+    echo "install.sh: INSTALL_MODE must be 'symlink' or 'copy', got '$INSTALL_MODE'" >&2
+    exit 1
+    ;;
+esac
+
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --copy)
@@ -111,8 +119,12 @@ resolve_source_dir() {
     clone_dir_resolved="$HOME/.local/share/dotfiles"
     info "Cloning from $DOTFILES_REPO_URL to $clone_dir_resolved"
     if [ -d "$clone_dir_resolved" ]; then
-      info "Resetting existing clone at $clone_dir_resolved"
-      run rm -rf "$clone_dir_resolved"
+      info "Moving existing clone at $clone_dir_resolved to $BACKUP_DIR/dotfiles-clone-$$"
+      run mkdir -p "$BACKUP_DIR"
+      if ! run mv -- "$clone_dir_resolved" "$BACKUP_DIR/dotfiles-clone-$$"; then
+        echo "Failed to move existing clone at $clone_dir_resolved aside" >&2
+        exit 1
+      fi
     fi
     run mkdir -p "$(dirname "$clone_dir_resolved")"
     if ! run git clone --depth 1 "$DOTFILES_REPO_URL" "$clone_dir_resolved"; then

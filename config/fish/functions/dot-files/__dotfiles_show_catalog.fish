@@ -32,7 +32,7 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
     if test (count $enabled_modules) -gt 0
         echo "  modules:  "(string join ', ' $enabled_modules)
     else
-        echo "  modules:  (all enabled)"
+        echo "  modules:  (default: core directory git languages package)"
     end
     echo ""
     echo "$heading""Preference files$normal"
@@ -65,6 +65,10 @@ function __dotfiles_show_catalog --argument-names style_file color_file username
 
         set -e STARSHIP_STYLE_PREVIEW
         set -e STARSHIP_COLOR_PREVIEW
+        # The preview loops overwrite the live starship.toml; force a real rebuild
+        # so the installed config matches the saved preferences even if the
+        # fingerprint cache still holds the pre-preview hash.
+        set -g __dotfiles_build_hash ''
         __dotfiles_rebuild_quiet
     else
         echo "$heading""Styles$normal $muted(install starship to see previews)$normal"

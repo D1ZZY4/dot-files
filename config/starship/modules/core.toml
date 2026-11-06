@@ -4,7 +4,7 @@ command_timeout = 900
 palette = "@PALETTE@"
 
 format = """
-[@LEFT@](color_blue)$os$username[](fg:color_blue bg:color_purple)$directory[@RIGHT@ ](fg:color_purple)$git_branch$git_status$c$cpp$rust$golang$nodejs$bun$php$java$kotlin$haskell$python$docker_context$conda$pixi$line_break$character"""
+[@LEFT@](color_blue)$os$username[](fg:color_blue bg:color_purple)$directory[@RIGHT@ ](fg:color_purple)$git_branch$git_commit$git_state$git_status$c$cpp$rust$golang$nodejs$bun$php$java$kotlin$haskell$python$docker_context$conda$pixi$line_break$character"""
 
 right_format = """$time"""
 

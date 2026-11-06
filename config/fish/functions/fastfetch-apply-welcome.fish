@@ -24,6 +24,13 @@ function fastfetch-apply-welcome --description 'Apply starship/username to Fastf
         set format_line '"format": "Welcome, '"$safe_name"'!"'
     end
 
+    # Nothing to do if the config already carries the desired format line;
+    # avoid rewriting config.jsonc on every interactive shell start.
+    set -l current_format (grep -o -- '"format": "Welcome, [^"]*!"' "$fastfetch_config"; or true)
+    if test "$current_format" = "$format_line"
+        return 0
+    end
+
     # mktemp with template: portable across GNU and BSD/macOS.
     set -l tmp (mktemp /tmp/dotfiles.XXXXXX)
     if test -z "$tmp"

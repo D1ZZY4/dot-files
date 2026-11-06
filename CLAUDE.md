@@ -59,7 +59,7 @@ Everyday options are plain-text files, `#` = comment, first non-comment line is 
 - Starship init is **deferred to first prompt** via `__starship_init --on-event fish_prompt` guard (avoids spawning Rust binary on every shell start). Uses `command starship` to bypass function shadowing.
 - Fastfetch runs **backgrounded** (`begin ... end &`) in `zz-fastfetch.fish` so it doesn't slow shell startup.
 - PATH: `conf.d/15-paths.fish` initializes universal `fish_user_paths` - never hardcode paths in config, tool dirs are added via `set -U`.
-- **Subdirectory helper pattern** (Fish autoloads only direct children of `functions/`): each function dir sources sibling `*.fish` helpers explicitly at load time. Same pattern in `functions/dot-files/` (17 `__dotfiles_*` helpers).
+- **Subdirectory helper pattern** (Fish autoloads only direct children of `functions/`): each function dir sources sibling `*.fish` helpers explicitly at load time. Same pattern in `functions/dot-files/` (16 `__dotfiles_*` helpers).
 - `functions/dot-files.fish` is the main `dot-files` CLI dispatcher (switch on `$argv[1]`).
 
 ### dot-files command
@@ -68,7 +68,7 @@ Everyday options are plain-text files, `#` = comment, first non-comment line is 
 
 ### nvm wrapper
 
-`functions/nvm.fish` lazy-loads bash nvm via `bash -c` with `NVM_DIR` passed as positional arg (prevents quote breakout); marker flag `__nvm_loaded` instead of `type -q nvm` (function shadows itself).
+`functions/nvm.fish` lazy-loads bash nvm via `bash -c` with `NVM_DIR` passed as positional arg (prevents quote breakout).
 
 ## Docs and planning
 
@@ -79,6 +79,6 @@ Everyday options are plain-text files, `#` = comment, first non-comment line is 
 ## Gotchas
 
 - `fastfetch-apply-welcome` edits `config.jsonc` with `string replace -r` via mktemp; it first greps for the `"format": "Welcome, ...!"` pattern because `string replace -r` always exits 0.
-- `__dotfiles_regex_escape` exists because `sed` module/tool names must be escaped before `s/^name$/.../` substitution.
-- Starfield directory icons use `directory.substitutions` (string replace, not segment matching) - avoid generic keys like `test` or `cache` that could match unrelated paths.
+- `__dotfiles_set_module` toggles modules.conf in fish-native code (no sed): it rewrites only the target module's enabled/disabled line and preserves all other lines verbatim. Exit codes: 0 = changed, 1 = already in the desired state, 2 = error.
+- Starship directory icons use `directory.substitutions` as an array of `{ from, to, regex? }` tables (string replace, not segment matching) - avoid generic keys like `test` or `cache` that could match unrelated paths. The root entry `{ from = "^/$", regex = true }` is anchored to the exact root path; `home_symbol` is icon-only (``).
 - Runtime paths resolve through `$HOME`/`$XDG_CONFIG_HOME` - no hardcoded usernames or machine paths (README's design constraint).

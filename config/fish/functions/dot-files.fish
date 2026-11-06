@@ -89,14 +89,14 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
         case --enable-module
             set -l module_name $argv[2]
             __dotfiles_require_valid_module "$module_name"; or return 1
-            __dotfiles_init_modules_file "$modules_file"
-            if contains -- "$module_name" (dotfiles-read-modules "$modules_file")
-                echo "dot-files: module '$module_name' is already enabled"
-            else
-                set -l escaped (__dotfiles_regex_escape "$module_name")
-                sed -i.bak "s/^# *$escaped\$/$module_name/" "$modules_file"
-                rm -f "$modules_file.bak"
-                echo "dot-files: module '$module_name' enabled"
+            __dotfiles_set_module "$module_name" on "$modules_file"
+            switch $status
+                case 0
+                    echo "dot-files: module '$module_name' enabled"
+                case 1
+                    echo "dot-files: module '$module_name' is already enabled"
+                case '*'
+                    return 1
             end
             source "$build_fish"
             echo ""
@@ -109,11 +109,15 @@ function dot-files --description 'Manage Starship and Fastfetch dotfiles prefere
                 echo "dot-files: cannot disable 'core' module (required)" >&2
                 return 1
             end
-            __dotfiles_init_modules_file "$modules_file"
-            set -l escaped (__dotfiles_regex_escape "$module_name")
-            sed -i.bak "s/^$escaped\$/# $module_name/" "$modules_file"
-            rm -f "$modules_file.bak"
-            echo "dot-files: module '$module_name' disabled"
+            __dotfiles_set_module "$module_name" off "$modules_file"
+            switch $status
+                case 0
+                    echo "dot-files: module '$module_name' disabled"
+                case 1
+                    echo "dot-files: module '$module_name' is already disabled"
+                case '*'
+                    return 1
+            end
             source "$build_fish"
             echo ""
             __dotfiles_starship_prompt_block
